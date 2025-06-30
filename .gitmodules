@@ -1,4 +1,4 @@
 [submodule "src/Serendipy"]
 	path = src/Serendipy
-	url = https://github.com/sparkyflight/Serendipy
+	url = https://github.com/sparkyflight/Serendipy-v3
     branch = production

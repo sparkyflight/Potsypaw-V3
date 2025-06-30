@@ -13,6 +13,7 @@ import swagger from "@fastify/swagger";
 import ui from "@fastify/swagger-ui";
 import "dotenv/config";
 import Fastify, { FastifyInstance } from "fastify";
+import { logger } from "./logger.js";
 
 // Initialize Firebase Admin
 firebase.initializeApp({
@@ -23,7 +24,7 @@ firebase.initializeApp({
 
 // Middleware
 const app: FastifyInstance = Fastify({
-	logger: true,
+	logger: logger,
 });
 
 app.register(cors, {
@@ -50,7 +51,7 @@ app.register(swagger, {
 			title: "Sparkyflight",
 			description:
 				"Welcome to Sparkyflight, the future of Social Media designed for the neurodiverse community, with a primary focus on individuals on the Autism Spectrum. Sparkyflight aims to provide a safe and inclusive space for people to connect, learn, and communicate about their special interests. Our platform utilizes a machine learning algorithm to match users based on their unique passions, creating a supportive network for shared education.",
-			version: "2.0.4",
+			version: "3.0.0",
 		},
 		host:
 			process.env.ENV === "production"

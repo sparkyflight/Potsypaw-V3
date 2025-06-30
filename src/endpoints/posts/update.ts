@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { plugins } from "@prisma/client";
 
 export default {
 	url: "/posts/update",
@@ -54,7 +55,11 @@ export default {
 						await database.Posts.updatePost(data["post_id"], {
 							caption: data["caption"],
 							image: data["image"] || null,
-							plugins: data["plugins"] || [],
+							plugins: {
+								create: data["plugins"].map(
+									(plugin: plugins) => plugin
+								),
+							},
 						});
 
 						return reply.send({ success: true });

@@ -49,13 +49,13 @@ export default {
 							"That usertag is already in use. Please choose a new one.",
 					});
 				} else {
-					const result = await database.Users.createUser(
-						tag,
-						userInfo.uid,
-						tag,
-						"None",
-						"/logo.png"
-					);
+					const result = await database.Users.createUser({
+						name: tag,
+						userid: userInfo.uid,
+						usertag: tag,
+						bio: "None",
+						avatar: "/logo.png",
+					});
 
 					if (result === true)
 						return reply.send({

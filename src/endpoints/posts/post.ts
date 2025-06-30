@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { plugins } from "@prisma/client";
 
 export default {
 	url: "/posts/post",
@@ -37,13 +38,18 @@ export default {
 			const user = await getAuth(Authorization, "posts.write");
 
 			if (user) {
-				await database.Posts.createPost(
-					user.userid,
-					data["caption"],
-					data["type"],
-					data["image"],
-					data["plugins"]
-				);
+				await database.Posts.createPost({
+					user: { connect: { userid: user.userid } },
+					caption: data["caption"],
+					type: data["type"],
+					image: data["image"],
+					plugins: {
+						create: data["plugins"].map(
+							(plugin: plugins) => plugin
+						),
+					},
+					postid: crypto.randomUUID(),
+				});
 
 				return reply.send({ success: true });
 			} else {
