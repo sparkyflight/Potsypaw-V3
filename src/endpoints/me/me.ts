@@ -1,31 +1,31 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia } from "elysia";
 import { getAuth } from "../../auth.js";
 
-export default {
-	method: "GET",
-	url: "/users/@me",
-	schema: {
-		summary: "Get @me information",
-		description:
-			"Returns all information about an user based on the token.",
-		tags: ["@me"],
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const Authorization: any = request.headers.authorization;
-		const user = await getAuth(Authorization, "profile.read");
+export default new Elysia({ name: "users/@me" }).get(
+	"/users/@me",
+	async ({ request, set }) => {
+		const authorization = request.headers.get("authorization");
 
-		if (user) return reply.send(user);
-		else
-			return reply.status(404).send({
+		if (!authorization) {
+			set.status = 401;
+			return {
+				error: true,
+				message: "Missing authorization header.",
+			};
+		}
+
+		const user = await getAuth(authorization, "profile.read");
+
+		if (user) {
+			return user;
+		} else {
+			set.status = 404;
+			return {
+				error: true,
 				message:
 					"We couldn't fetch any information about you in our database",
-				token: Authorization,
-				error: true,
-			});
-	},
-};
+				token: authorization,
+			};
+		}
+	}
+);

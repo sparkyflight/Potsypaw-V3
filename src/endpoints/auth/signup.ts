@@ -1,77 +1,77 @@
-import { FastifyReply, FastifyRequest } from "fastify";
-import * as database from "../../Serendipy/prisma.js";
+import { Elysia, t } from "elysia";
 import firebase from "firebase-admin";
+import * as database from "../../Serendipy/prisma.js";
 import * as logger from "../../logger.js";
 
-export default {
-	method: ["GET", "POST", "PATCH", "HEAD", "OPTIONS", "DELETE"],
-	url: "/auth/signup",
-	schema: {
-		querystring: {
-			type: "object",
-			properties: {
-				tag: { type: "string" },
-				uid: { type: "string" },
-			},
-			required: ["tag", "uid"],
-		},
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
+export default new Elysia({ name: "auth/signup" }).all(
+	"/auth/signup",
+	async ({ request, query, set }) => {
 		try {
-			const Authorization: any = request.headers.authorization;
-			const { tag }: any = request.query;
+			const authorization = request.headers.get("authorization");
+			const { tag, uid } = query;
+
+			if (!authorization) {
+				set.status = 401;
+				return {
+					error: true,
+					message: "Missing authorization header.",
+				};
+			}
 
 			const userInfo = await firebase
 				.auth()
-				.verifyIdToken(Authorization, true);
-			const dbUser = await database.Users.get({
-				userid: userInfo.uid,
-			});
+				.verifyIdToken(authorization, true);
+			const dbUser = await database.Users.get({ userid: userInfo.uid });
 
 			if (dbUser) {
-				return reply.send({
+				return {
 					error: true,
 					message: "[Database Error] => User already exists.",
-				});
-			} else {
-				const existingUser = await database.Users.get({
-					usertag: tag,
-				});
-				if (existingUser) {
-					return reply.send({
-						error: true,
-						message:
-							"That usertag is already in use. Please choose a new one.",
-					});
-				} else {
-					const result = await database.Users.createUser({
-						name: tag,
-						userid: userInfo.uid,
-						usertag: tag,
-						bio: "None",
-						avatar: "/logo.png",
-					});
-
-					if (result === true)
-						return reply.send({
-							error: false,
-							message: "User Created.",
-						});
-					else return reply.send({ error: true, message: result });
-				}
+				};
 			}
-		} catch (error) {
-			reply.status(500).send({
-				error: "Internal Server Error",
-				message: "An error occurred while processing your request.",
+
+			const existingUser = await database.Users.get({ usertag: tag });
+			if (existingUser) {
+				return {
+					error: true,
+					message:
+						"That usertag is already in use. Please choose a new one.",
+				};
+			}
+
+			const result = await database.Users.createUser({
+				name: tag,
+				userid: userInfo.uid,
+				usertag: tag,
+				bio: "None",
+				avatar: "/logo.png",
 			});
 
+			if (result === true) {
+				return {
+					error: false,
+					message: "User Created.",
+				};
+			} else {
+				return {
+					error: true,
+					message: result,
+				};
+			}
+		} catch (error) {
+			set.status = 500;
 			logger.error("Error during user signup", error);
+
+			return {
+				error: "Internal Server Error",
+				message: "An error occurred while processing your request.",
+			};
 		}
 	},
-};
+	{
+		query: t.Object({
+			tag: t.String(),
+			uid: t.String(),
+		}),
+	}
+);

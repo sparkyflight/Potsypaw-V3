@@ -1,104 +1,69 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
 
-export default {
-	url: "/users/follow",
-	method: "PUT",
-	schema: {
-		summary: "Follow user",
-		description: "Follows a user.",
-		tags: ["users"],
-		querystring: {
-			type: "object",
-			properties: {
-				target: { type: "string" },
-				type: { type: "string" },
-			},
-			required: ["target", "type"],
-		},
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const data: any = request.query;
-		const Authorization: any = request.headers.authorization;
-		const user = await getAuth(Authorization, "users.follow");
-		const target = await database.Users.get({
-			userid: data.target,
-		});
+const querySchema = t.Object({
+	target: t.String(),
+	type: t.Enum({ follow: "follow", unfollow: "unfollow" }),
+});
 
-		if (data.type === "follow") {
-			if (user) {
-				if (target) {
-					if (
-						user.following.find((p) => p.targetid === target.userid)
-					)
-						return reply.send({
-							error: "You cannot follow this user again.",
-						});
-					else {
-						const update = await database.Users.follow(
-							user.userid,
-							target.userid
-						);
-
-						if (update)
-							return reply.send({
-								success: true,
-							});
-						else
-							return reply.send({
-								error: "An unexpected error has occured while trying to complete your request.",
-							});
-					}
-				} else
-					return reply.send({
-						error: "The provided target user tag is invalid.",
-					});
-			} else
-				return reply.send({
-					error: "The provided user token is invalid, or the user does not exist.",
-				});
+export default new Elysia().put(
+	"/users/follow",
+	async ({ query, request, set }) => {
+		const authorization = request.headers.get("authorization");
+		if (!authorization) {
+			set.status = 401;
+			return { error: "Missing authorization header." };
 		}
 
-		if (data.type === "unfollow") {
-			if (user) {
-				if (target) {
-					if (
-						!user.following.find(
-							(a) => a.targetid === target.userid
-						)
-					)
-						return reply.send({
-							error: "You cannot unfollow this user. Reason: You are not following to this user.",
-						});
-					else {
-						const update = await database.Users.unfollow(
-							user.userid,
-							target.userid
-						);
+		const user = await getAuth(authorization, "users.follow");
+		if (!user) {
+			set.status = 401;
+			return { error: "Invalid user token or user does not exist." };
+		}
 
-						if (update)
-							return reply.send({
-								success: true,
-							});
-						else
-							return reply.send({
-								error: "An unexpected error has occured while trying to complete your request.",
-							});
-					}
-				} else
-					return reply.send({
-						error: "The provided target user id is invalid.",
-					});
-			} else
-				return reply.send({
-					error: "The provided user token is invalid, or the user does not exist.",
-				});
+		const target = await database.Users.get({ userid: query.target });
+		if (!target) {
+			set.status = 404;
+			return { error: "The provided target user id is invalid." };
+		}
+
+		if (query.type === "follow") {
+			if (user.following.find((p) => p.targetid === target.userid)) {
+				return { error: "You cannot follow this user again." };
+			}
+
+			const update = await database.Users.follow(
+				user.userid,
+				target.userid
+			);
+			if (!update) {
+				return {
+					error: "An unexpected error occurred while trying to complete your request.",
+				};
+			}
+
+			return { success: true };
+		} else {
+			// unfollow
+			if (!user.following.find((p) => p.targetid === target.userid)) {
+				return {
+					error: "You cannot unfollow this user because you are not following them.",
+				};
+			}
+
+			const update = await database.Users.unfollow(
+				user.userid,
+				target.userid
+			);
+			if (!update) {
+				return {
+					error: "An unexpected error occurred while trying to complete your request.",
+				};
+			}
+
+			return { success: true };
 		}
 	},
-};
+	{ query: querySchema }
+);

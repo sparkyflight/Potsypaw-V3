@@ -1,177 +1,136 @@
 // Packages
 import fs from "node:fs";
+import path from "path";
+import { Elysia } from "elysia";
+import { cors } from "@elysiajs/cors";
+import { swagger } from "@elysiajs/swagger";
 import firebase from "firebase-admin";
 import serviceAccount from "./firebaseService.js";
-import path from "path";
 import * as database from "./Serendipy/prisma.js";
 import * as rpc from "./Serendipy/rpc.js";
 import * as auth from "./auth.js";
 import * as perms from "./perms.js";
-import cors from "@fastify/cors";
-import ratelimit from "@fastify/rate-limit";
-import swagger from "@fastify/swagger";
-import ui from "@fastify/swagger-ui";
-import "dotenv/config";
-import Fastify, { FastifyInstance } from "fastify";
 import { logger } from "./logger.js";
+import "dotenv/config";
 
-// Initialize Firebase Admin
+// Firebase init
 firebase.initializeApp({
 	credential: firebase.credential.cert(
 		serviceAccount as firebase.ServiceAccount
 	),
 });
 
-// Middleware
-const app: FastifyInstance = Fastify({
-	logger: logger,
-});
-
-app.register(cors, {
-	origin: "*",
-	allowedHeaders: [
-		"secret",
-		"userid",
-		"Authorization",
-		"Authorization",
-		"Content-Type",
-		"Content-Disposition",
-		"Content-Length",
-	],
-	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-	credentials: true,
-	optionsSuccessStatus: 200,
-	preflight: true,
-	strictPreflight: false,
-});
-
-app.register(swagger, {
-	swagger: {
-		info: {
-			title: "Sparkyflight",
-			description:
-				"Welcome to Sparkyflight, the future of Social Media designed for the neurodiverse community, with a primary focus on individuals on the Autism Spectrum. Sparkyflight aims to provide a safe and inclusive space for people to connect, learn, and communicate about their special interests. Our platform utilizes a machine learning algorithm to match users based on their unique passions, creating a supportive network for shared education.",
-			version: "3.0.0",
-		},
-		host:
-			process.env.ENV === "production"
-				? "api.sparkyflight.xyz"
-				: `localhost:${process.env.PORT}`,
-		schemes: ["http"],
-		consumes: ["application/json"],
-		produces: ["application/json"],
-		tags: [
-			{
-				name: "users",
-				description: "Endpoints for accessing our User database.",
+// Initialize Elysia App
+const app = new Elysia()
+	.use(
+		cors({
+			origin: "*",
+			methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+			allowedHeaders: [
+				"secret",
+				"userid",
+				"Authorization",
+				"Content-Type",
+				"Content-Disposition",
+				"Content-Length",
+			],
+			credentials: true,
+		})
+	)
+	.use(
+		swagger({
+			documentation: {
+				info: {
+					title: "Sparkyflight",
+					description:
+						"Welcome to Sparkyflight, the future of Social Media designed for the neurodiverse community...",
+					version: "3.0.0",
+				},
+				tags: [
+					{
+						name: "users",
+						description:
+							"Endpoints for accessing our User database.",
+					},
+					{
+						name: "posts",
+						description:
+							"Endpoints for accessing our Posts database.",
+					},
+					{
+						name: "partners",
+						description: "Endpoints for accessing partner data.",
+					},
+					{
+						name: "@me",
+						description:
+							"Endpoints for accessing your own personal information.",
+					},
+					{
+						name: "validate",
+						description: "Endpoints for validating user data.",
+					},
+				],
+				components: {
+					securitySchemes: {
+						apiKey: {
+							type: "apiKey",
+							in: "header",
+							name: "Authorization",
+						},
+					},
+				},
+				security: [{ apiKey: [] }],
+				servers: [
+					{
+						url:
+							process.env.ENV === "production"
+								? "http://api.sparkyflight.xyz"
+								: `http://localhost:${process.env.PORT}`,
+					},
+				],
 			},
-			{
-				name: "posts",
-				description: "Endpoints for accessing our Posts database.",
-			},
-			{
-				name: "partners",
-				description: "Endpoints for accessing partner data.",
-			},
-			{
-				name: "@me",
-				description:
-					"Endpoints for accessing your own personal information.",
-			},
-			{
-				name: "validate",
-				description:
-					"Endpoints for validating user data before continuing API Use.",
-			},
-		],
-		securityDefinitions: {
-			apiKey: {
-				type: "apiKey",
-				name: "Authorization",
-				in: "header",
-			},
-		},
-	},
-	hideUntagged: false,
-});
+		})
+	)
+	.onRequest(({ set }) => {
+		set.headers["Access-Control-Allow-Origin"] = "*";
+		set.headers["Access-Control-Allow-Headers"] = "*";
+		set.headers["Access-Control-Allow-Methods"] = "*";
+		set.headers["Access-Control-Allow-Credentials"] = "true";
+	})
+	.onRequest((ctx) => {
+		logger.info(
+			"Request received: " + ctx.request.method + " " + ctx.request.url
+		);
+	})
+	.onError(({ code, error }) => {
+		console.error("Server error:", error);
+		if (code === "NOT_FOUND")
+			return new Response("Not Found", { status: 404 });
+		return new Response("Internal Server Error", { status: 500 });
+	});
 
-app.register(ui, {
-	routePrefix: "/",
-	uiConfig: {
-		docExpansion: "full",
-		deepLinking: true,
-	},
-	uiHooks: {
-		onRequest: (request, reply, next) => {
-			next();
-		},
-		preHandler: (request, reply, next) => {
-			next();
-		},
-	},
-	staticCSP: true,
-	transformStaticCSP: (header) => header,
-	transformSpecification: (swaggerObject, request, reply) => {
-		return swaggerObject;
-	},
-	transformSpecificationClone: true,
-});
-
-app.register(ratelimit, {
-	global: true,
-	max: 50,
-	timeWindow: 1000,
-});
-
-app.addHook("preHandler", (req, res, done) => {
-	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "*");
-	res.header("Access-Control-Allow-Methods", "*");
-	res.header("Access-Control-Allow-Credentials", "true");
-
-	done();
-});
-
-// API Endpoints Map
-const getFilesInDirectory = (dir: string) => {
+// Recursively load routes from dist/endpoints
+const getFilesInDirectory = (dir: string): string[] => {
 	let files: string[] = [];
-	const filesInDir = fs.readdirSync(dir);
-
-	for (const file of filesInDir) {
+	for (const file of fs.readdirSync(dir)) {
 		const filePath = path.join(dir, file);
 		const stat = fs.statSync(filePath);
-
 		if (stat.isDirectory())
 			files = files.concat(getFilesInDirectory(filePath));
-		else files.push(filePath);
+		else if (filePath.endsWith(".js")) files.push(filePath);
 	}
-
 	return files;
 };
 
-// API Endpoints
-const apiEndpointsFiles = getFilesInDirectory("./dist/endpoints").filter(
-	(file) => file.endsWith(".js")
-);
-
-for (const file of apiEndpointsFiles) {
-	import(`../${file}`)
-		.then(async (module) => {
-			await app.route(module.default);
-		})
-		.catch((error) => {
-			console.error(`Error importing ${file}: ${error}`);
-		});
+const endpoints = getFilesInDirectory("./dist/endpoints");
+for (const file of endpoints) {
+	const module = await import(path.resolve(file));
+	app.use(module.default);
 }
 
-setTimeout(() => {
-	// Swagger
-	app.ready(() => {
-		app.swagger();
-	});
-
-	// Start Server
-	app.listen({ port: Number(process.env.PORT) }, (err) => {
-		if (err) throw err;
-	});
-}, 8000);
+// Start Server
+app.listen(Number(process.env.PORT));
+console.log(
+	`🦊 Sparkyflight API is running at http://localhost:${process.env.PORT}`
+);

@@ -1,65 +1,74 @@
-import * as database from "../../Serendipy/prisma.js";
+import { Elysia, Static, t } from "elysia";
 import firebase from "firebase-admin";
-import { FastifyReply, FastifyRequest } from "fastify";
+import * as database from "../../Serendipy/prisma.js";
 
-export default {
-	method: "PATCH",
-	url: "/users/applications",
-	schema: {
-		summary: "Update an Developer Application",
-		description:
-			"Returns boolean value indicating whether the update was successful or not.",
-		tags: ["@me"],
-		body: {
-			type: "object",
-			properties: {
-				token: { type: "string" },
-				name: { type: "string" },
-				logo: { type: "string" },
-				permissions: { type: "array" },
-				active: { type: "boolean" },
-			},
-			required: ["token", "name", "logo", "permissions", "active"],
-		},
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
+const bodySchema = t.Object({
+	token: t.String(),
+	name: t.String(),
+	logo: t.String(),
+	permissions: t.Array(t.Any()),
+	active: t.Boolean(),
+});
+
+export default new Elysia({ name: "users/update-application" }).patch(
+	"/users/applications",
+	async ({
+		request,
+		body,
+		set,
+	}: {
+		request: Request;
+		body: Static<typeof bodySchema>;
+		set: any;
+	}) => {
+		const authorization = request.headers.get("authorization");
+
+		if (!authorization) {
+			set.status = 401;
+			return {
+				error: true,
+				message: "Missing authorization header.",
+			};
+		}
+
 		try {
-			const { token, name, logo, permissions, active }: any =
-				request.body;
-			const Authorization: any = request.headers.authorization;
-
 			const userInfo = await firebase
 				.auth()
-				.verifyIdToken(Authorization, true);
+				.verifyIdToken(authorization, true);
+
 			const dbUser = await database.Users.get({
 				userid: userInfo.uid,
 			});
 
-			if (dbUser) {
-				const apps = await database.Applications.updateApp(token, {
-					name: name,
-					logo: logo,
-					permissions: permissions,
-					active: active,
-				});
-
-				return reply.send(apps);
-			} else
-				return reply.send({
-					token: Authorization,
+			if (!dbUser) {
+				set.status = 404;
+				return {
+					token: authorization,
 					error: true,
 					message: "User does not exist.",
-				});
-		} catch (error) {
-			reply.status(500).send({
-				error: "Internal Server Error",
-				message: error.errorInfo.message,
+				};
+			}
+
+			const updated = await database.Applications.updateApp(body.token, {
+				name: body.name,
+				logo: body.logo,
+				permissions: body.permissions,
+				active: body.active,
 			});
+
+			return updated;
+		} catch (error: any) {
+			set.status = 500;
+			return {
+				error: "Internal Server Error",
+				message:
+					error?.errorInfo?.message ??
+					error?.message ??
+					"Unexpected error.",
+			};
 		}
 	},
-};
+	{
+		body: bodySchema,
+	}
+);

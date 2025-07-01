@@ -1,33 +1,27 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 
-export default {
-	url: "/users/get",
-	method: "GET",
-	schema: {
-		summary: "Get user",
-		description: "Gets a user.",
-		tags: ["users"],
-		querystring: {
-			type: "object",
-			properties: {
-				tag: { type: "string" },
-			},
-			required: ["tag"],
-		},
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const data: any = request.query;
+const querySchema = t.Object({
+	tag: t.String(),
+});
 
-		const tag = data.tag;
-		let user = await database.Users.get({ usertag: tag });
+export default new Elysia().get(
+	"/users/get",
+	async ({ query, set }) => {
+		const user = await database.Users.get({ usertag: query.tag });
 
-		if (user) return reply.send(user);
-		else
-			return reply.status(404).send({
+		if (user) {
+			return user;
+		} else {
+			set.status = 404;
+			return {
 				message:
 					"We couldn't fetch any information about this user in our database",
 				error: true,
-			});
+			};
+		}
 	},
-};
+	{
+		query: querySchema,
+	}
+);

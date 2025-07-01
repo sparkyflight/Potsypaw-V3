@@ -1,84 +1,86 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, t, Static } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
 import { plugins } from "@prisma/client";
 
-export default {
-	url: "/posts/update",
-	method: "PATCH",
-	schema: {
-		summary: "Update post",
-		description: "Updates a post.",
-		tags: ["posts"],
-		body: {
-			type: "object",
-			properties: {
-				caption: { type: "string" },
-				image: { type: "string" },
-				plugins: { type: "object" },
-				post_id: { type: "string" },
-			},
-			required: ["caption", "post_id"],
-		},
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const data = request.body;
-		const Authorization: any = request.headers.authorization;
+const bodySchema = t.Object({
+	caption: t.String(),
+	image: t.Optional(t.String()),
+	plugins: t.Optional(t.Array(t.Any())),
+	post_id: t.String(),
+});
 
-		if (!Authorization)
-			return reply.send({
-				error: "Oops, it seems that you are not logged in.",
-			});
-		if (!data["post_id"])
-			return reply.send({
-				error: "Oops, it seems that you did not pass the Post ID.",
-			});
-		else {
-			const user = await getAuth(Authorization, "posts.update");
+export default new Elysia({ name: "posts/update" }).patch(
+	"/posts/update",
+	async ({
+		request,
+		body,
+		set,
+	}: {
+		request: Request;
+		body: Static<typeof bodySchema>;
+		set: any;
+	}) => {
+		const authorization = request.headers.get("authorization");
 
-			if (user) {
-				let origPost = await database.Posts.get(data["post_id"]);
-
-				if (origPost) {
-					if (origPost.userid === user.userid) {
-						if (!data["caption"] || data["caption"].error)
-							return reply.send({
-								success: false,
-								error: "Sorry, a caption must be provided.",
-							});
-
-						await database.Posts.updatePost(data["post_id"], {
-							caption: data["caption"],
-							image: data["image"] || null,
-							plugins: {
-								create: data["plugins"].map(
-									(plugin: plugins) => plugin
-								),
-							},
-						});
-
-						return reply.send({ success: true });
-					} else
-						return reply.send({
-							success: false,
-							error: "You are NOT the author of this post. Access denied.",
-						});
-				} else
-					reply.send({
-						success: false,
-						error: "The Post ID provided is invalid.",
-					});
-			} else {
-				return reply.send({
-					success: false,
-					error: "The user token was not passed with token.",
-				});
-			}
+		if (!authorization) {
+			set.status = 401;
+			return { error: "Oops, it seems that you are not logged in." };
 		}
+
+		if (!body.post_id) {
+			set.status = 400;
+			return {
+				error: "Oops, it seems that you did not pass the Post ID.",
+			};
+		}
+
+		const user = await getAuth(authorization, "posts.update");
+
+		if (!user) {
+			set.status = 401;
+			return {
+				success: false,
+				error: "The user token was not passed with token.",
+			};
+		}
+
+		const origPost = await database.Posts.get(body.post_id);
+
+		if (!origPost) {
+			set.status = 404;
+			return {
+				success: false,
+				error: "The Post ID provided is invalid.",
+			};
+		}
+
+		if (origPost.userid !== user.userid) {
+			set.status = 403;
+			return {
+				success: false,
+				error: "You are NOT the author of this post. Access denied.",
+			};
+		}
+
+		if (!body.caption) {
+			return {
+				success: false,
+				error: "Sorry, a caption must be provided.",
+			};
+		}
+
+		await database.Posts.updatePost(body.post_id, {
+			caption: body.caption,
+			image: body.image || null,
+			plugins: {
+				create: (body.plugins || []).map((plugin: plugins) => plugin),
+			},
+		});
+
+		return { success: true };
 	},
-};
+	{
+		body: bodySchema,
+	}
+);

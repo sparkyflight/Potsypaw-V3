@@ -1,99 +1,78 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, Static, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
 
-export default {
-	url: "/users/@me",
-	method: "PATCH",
-	schema: {
-		summary: "Update @me information",
-		description:
-			"Returns boolean value indicating whether the update was successful or not.",
-		tags: ["@me"],
-		body: {
-			type: "object",
-			properties: {
-				name: { type: "string" },
-				tag: { type: "string" },
-				avatar: { type: "string" },
-				bio: { type: "string" },
-				discord: { type: "string" },
-			},
-			required: ["name", "avatar", "tag"],
-		},
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		let data = request.body;
-		const Authorization: any = request.headers.authorization;
+const bodySchema = t.Object({
+	name: t.String(),
+	tag: t.String(),
+	avatar: t.String(),
+	bio: t.Optional(t.String()),
+	discord: t.Optional(t.String()),
+});
 
-		const user = await getAuth(Authorization, "profile.write");
+export default new Elysia({ name: "users/update-me" }).patch(
+	"/users/@me",
+	async ({
+		request,
+		body,
+		set,
+	}: {
+		request: Request;
+		body: Static<typeof bodySchema>;
+		set: any;
+	}) => {
+		const authorization = request.headers.get("authorization");
 
-		if (user) {
-			if (!data["bio"] || data["bio"] === "") data["bio"] = null;
-			if (!data["tag"] || data["tag"] === "") data["tag"] = null;
-			if (!data["discord"] || data["discord"] === "")
-				data["discord"] = null;
+		if (!authorization) {
+			set.status = 401;
+			return {
+				error: true,
+				message: "Missing authorization header.",
+			};
+		}
 
-			if (data["tag"]) {
-				if (user.usertag != data["tag"]) {
-					const existingUser = await database.Users.get({
-						usertag: data["tag"],
-					});
+		const user = await getAuth(authorization, "profile.write");
 
-					if (existingUser) {
-						return reply.send({
-							success: false,
-							message:
-								"That usertag is already in use. Please choose a new one.",
-						});
-					} else {
-						await database.Users.updateUser(user.userid, {
-							name: data["name"],
-							usertag: data["tag"],
-							avatar: data["avatar"],
-							bio: data["bio"] || null,
-							discord_id: data["discord"] || null,
-						});
-
-						return reply.send({
-							success: true,
-						});
-					}
-				} else {
-					await database.Users.updateUser(user.userid, {
-						name: data["name"],
-						avatar: data["avatar"],
-						bio: data["bio"] || null,
-						discord_id: data["discord"] || null,
-					});
-
-					return reply.send({
-						success: true,
-					});
-				}
-			} else {
-				await database.Users.updateUser(user.userid, {
-					name: data["name"],
-					avatar: data["avatar"],
-					bio: data["bio"] || null,
-					discord_id: data["discord"] || null,
-				});
-
-				return reply.send({
-					success: true,
-				});
-			}
-		} else
-			reply.status(404).send({
+		if (!user) {
+			set.status = 404;
+			return {
+				error: true,
 				message:
 					"We couldn't fetch any information about you in our database",
-				token: Authorization,
-				error: true,
-			});
+				token: authorization,
+			};
+		}
+
+		// Normalize optional fields
+		const bio = body.bio?.trim() || null;
+		const tag = body.tag?.trim() || null;
+		const discord = body.discord?.trim() || null;
+
+		if (tag && user.usertag !== tag) {
+			const existingUser = await database.Users.get({ usertag: tag });
+
+			if (existingUser) {
+				return {
+					success: false,
+					message:
+						"That usertag is already in use. Please choose a new one.",
+				};
+			}
+		}
+
+		await database.Users.updateUser(user.userid, {
+			name: body.name,
+			usertag: tag,
+			avatar: body.avatar,
+			bio,
+			discord_id: discord,
+		});
+
+		return {
+			success: true,
+		};
 	},
-};
+	{
+		body: bodySchema,
+	}
+);

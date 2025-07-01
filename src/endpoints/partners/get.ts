@@ -1,32 +1,25 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 
-export default {
-	url: "/partners/get",
-	method: "GET",
-	schema: {
-		summary: "Get Partner Info",
-		description: "Returns information about one of our partners.",
-		tags: ["partners"],
-		querystring: {
-			type: "object",
-			properties: {
-				id: { type: "string" },
-			},
-			required: ["id"],
-		},
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const { id }: any = request.query;
+export default new Elysia({ name: "partners/get" }).get(
+	"/partners/get",
+	async ({ query, set }) => {
+		const { id } = query;
 
-		if (id || id != "") {
-			const partner = await database.Partners.get({
-				id: id,
-			});
-			return reply.send(partner);
-		} else
-			return reply.status(404).send({
+		if (!id || id.trim() === "") {
+			set.status = 404;
+			return {
 				error: "You did not provide a valid Partner ID.",
-			});
+			};
+		}
+
+		const partner = await database.Partners.get({ id });
+
+		return partner;
 	},
-};
+	{
+		query: t.Object({
+			id: t.String(),
+		}),
+	}
+);

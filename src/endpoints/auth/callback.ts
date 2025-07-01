@@ -1,25 +1,26 @@
-import { FastifyReply, FastifyRequest } from "fastify";
-import * as database from "../../Serendipy/prisma.js";
+import { Elysia } from "elysia";
 import firebase from "firebase-admin";
+import * as database from "../../Serendipy/prisma.js";
 import * as logger from "../../logger.js";
 
-export default {
-	method: ["GET", "POST", "PATCH", "HEAD", "OPTIONS", "DELETE"],
-	url: "/auth/callback",
-	schema: {
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
+export default new Elysia({ name: "auth/callback" }).all(
+	"/auth/callback",
+	async ({ request, set }) => {
 		try {
-			const Authorization: any = request.headers.authorization;
+			const authorization = request.headers.get("authorization");
+
+			if (!authorization) {
+				set.status = 401;
+				return {
+					error: true,
+					message: "Missing authorization header.",
+				};
+			}
 
 			const userInfo = await firebase
 				.auth()
-				.verifyIdToken(Authorization, true);
+				.verifyIdToken(authorization, true);
+
 			const dbUser = await database.prisma.users.findUnique({
 				where: {
 					userid: userInfo.uid,
@@ -42,20 +43,23 @@ export default {
 				},
 			});
 
-			if (dbUser) return reply.send({ token: Authorization });
-			else
-				return reply.send({
-					token: Authorization,
+			if (dbUser) {
+				return { token: authorization };
+			} else {
+				return {
+					token: authorization,
 					error: true,
 					message: "User does not exist.",
-				});
+				};
+			}
 		} catch (error) {
-			reply.status(500).send({
+			set.status = 500;
+			logger.error("Error during authentication callback", error);
+
+			return {
 				error: "Internal Server Error",
 				message: "An error occurred while processing your request.",
-			});
-
-			logger.error("Error during authentication callback", error);
+			};
 		}
-	},
-};
+	}
+);

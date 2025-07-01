@@ -1,35 +1,18 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 
-export default {
-	url: "/validate/username",
-	method: "GET",
-	schema: {
-		summary: "Validate username",
-		description: "Validates a username.",
-		tags: ["validate"],
-		querystring: {
-			type: "object",
-			properties: {
-				tag: { type: "string" },
-			},
-			required: ["tag"],
-		},
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const data: any = request.query;
+const querySchema = t.Object({
+	tag: t.String(),
+});
 
-		const tag = data.tag;
-		let user = await database.Users.get({ usertag: tag });
+export default new Elysia().get(
+	"/validate/username",
+	async ({ query }) => {
+		const user = await database.Users.get({ usertag: query.tag });
 
-		if (user)
-			return reply.send({
-				exists: true,
-			});
-		// it do be existing
-		else
-			return reply.send({
-				exists: false,
-			}); // it do not be existing
+		return { exists: !!user };
 	},
-};
+	{
+		query: querySchema,
+	}
+);

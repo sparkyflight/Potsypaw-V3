@@ -1,44 +1,39 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 
-export default {
-	url: "/users/list_posts",
-	method: "GET",
-	schema: {
-		summary: "Get user posts",
-		description: "Gets a user's posts.",
-		tags: ["users"],
-		querystring: {
-			type: "object",
-			properties: {
-				tag: { type: "string" },
-			},
-			required: ["tag"],
-		},
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const data: any = request.query;
+const querySchema = t.Object({
+	tag: t.String(),
+});
 
-		const tag = data.tag;
-		let posts;
+export default new Elysia().get(
+	"/users/list_posts",
+	async ({ query, set }) => {
+		const tag = query.tag;
 
-		if (tag || tag != "") {
-			let user = await database.Users.get({ usertag: tag });
-
-			if (user) {
-				posts = await database.Posts.getAllUserPosts(user.userid);
-				posts.reverse();
-
-				return reply.send(posts);
-			} else
-				return reply.status(404).send({
-					message:
-						"We couldn't fetch any information about this user in our database",
-					error: true,
-				});
-		} else
-			return reply.status(404).send({
+		if (!tag) {
+			set.status = 404;
+			return {
 				error: "There was no user tag specified with the request.",
-			});
+			};
+		}
+
+		const user = await database.Users.get({ usertag: tag });
+
+		if (!user) {
+			set.status = 404;
+			return {
+				message:
+					"We couldn't fetch any information about this user in our database",
+				error: true,
+			};
+		}
+
+		let posts = await database.Posts.getAllUserPosts(user.userid);
+		posts.reverse();
+
+		return posts;
 	},
-};
+	{
+		query: querySchema,
+	}
+);

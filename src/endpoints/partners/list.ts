@@ -1,16 +1,10 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 
-export default {
-	url: "/partners/list",
-	method: "GET",
-	schema: {
-		summary: "Get All Partners",
-		description: "Returns a list about all of our partners.",
-		tags: ["partners"],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
+export default new Elysia({ name: "partners/list" }).get(
+	"/partners/list",
+	async () => {
 		const partners = await database.Partners.getAllPartners();
-		return reply.send(partners);
-	},
-};
+		return partners;
+	}
+);

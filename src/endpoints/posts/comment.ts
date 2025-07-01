@@ -1,65 +1,68 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Elysia, Static, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
 
-export default {
-	url: "/posts/comment",
-	method: "POST",
-	schema: {
-		summary: "Add a comment to a post",
-		description:
-			"Returns boolean value indicating whether the comment was successful or not.",
-		tags: ["posts"],
-		querystring: {
-			type: "object",
-			properties: {
-				id: { type: "string" },
-			},
-			required: ["id"],
-		},
-		body: {
-			type: "object",
-			properties: {
-				caption: { type: "string" },
-				image: { type: "string" },
-			},
-			required: ["caption"],
-		},
-		security: [
-			{
-				apiKey: [],
-			},
-		],
-	},
-	handler: async (request: FastifyRequest, reply: FastifyReply) => {
-		const data = request.body;
-		const { id }: any = request.query;
-		const Authorization: any = request.headers.authorization;
+const querySchema = t.Object({
+	id: t.String(),
+});
 
-		const user = await getAuth(Authorization, "posts.comment");
-		let post = await database.Posts.get(id);
+const bodySchema = t.Object({
+	caption: t.String(),
+	image: t.Optional(t.String()),
+});
 
-		if (user) {
-			if (post) {
-				const update = await database.Posts.comment(
-					post.postid,
-					user.userid,
-					data["caption"],
-					data["image"]
-				);
+export default new Elysia({ name: "posts/comment" }).post(
+	"/posts/comment",
+	async ({
+		request,
+		query,
+		body,
+		set,
+	}: {
+		request: Request;
+		query: Static<typeof querySchema>;
+		body: Static<typeof bodySchema>;
+		set: any;
+	}) => {
+		const authorization = request.headers.get("authorization");
 
-				if (update) return reply.send({ success: true });
-				else
-					return reply.send({
-						error: "Something went wrong with processing your request.",
-					});
-			} else
-				return reply.send({
-					error: "The provided post id is invalid.",
-				});
-		} else
-			return reply.send({
+		if (!authorization) {
+			set.status = 401;
+			return { error: "Missing authorization header." };
+		}
+
+		const user = await getAuth(authorization, "posts.comment");
+		if (!user) {
+			set.status = 401;
+			return {
 				error: "The provided user token is invalid, or the user does not exist.",
-			});
+			};
+		}
+
+		const post = await database.Posts.get(query.id);
+		if (!post) {
+			set.status = 404;
+			return { error: "The provided post id is invalid." };
+		}
+
+		const update = await database.Posts.comment(
+			post.postid,
+			user.userid,
+			body.caption,
+			body.image || null
+		);
+
+		if (update) {
+			return { success: true };
+		} else {
+			set.status = 500;
+			return {
+				error: "Something went wrong with processing your request.",
+			};
+		}
 	},
-};
+	{
+		query: querySchema,
+		body: bodySchema,
+	}
+);
