@@ -10,7 +10,7 @@ import * as database from "./Serendipy/prisma.js";
 import * as rpc from "./Serendipy/rpc.js";
 import * as auth from "./auth.js";
 import * as perms from "./perms.js";
-import { logger } from "./logger.js";
+import { info } from "./logger.js";
 import "dotenv/config";
 
 // Firebase init
@@ -99,7 +99,8 @@ const app = new Elysia()
 		set.headers["Access-Control-Allow-Credentials"] = "true";
 	})
 	.onRequest((ctx) => {
-		logger.info(
+		info(
+			"Elysia",
 			"Request received: " + ctx.request.method + " " + ctx.request.url
 		);
 	})
@@ -130,7 +131,15 @@ for (const file of endpoints) {
 }
 
 // Start Server
-app.listen(Number(process.env.PORT));
-console.log(
-	`🦊 Sparkyflight API is running at http://localhost:${process.env.PORT}`
+app.listen(
+	{
+		hostname: "0.0.0.0",
+		port: Number(process.env.PORT),
+	},
+	() => {
+		info(
+			"Elysia",
+			`🦊 Sparkyflight API is running at http://localhost:${process.env.PORT}`
+		);
+	}
 );

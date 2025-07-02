@@ -10,58 +10,6 @@ const timestamp = () => chalk.gray(`[${new Date().toISOString()}]`);
 const label = (type: string, color: (text: string) => string) =>
 	chalk.bold(color(type.padEnd(7)));
 
-// Fastify logger interface
-const allowedKeys = ["method", "url", "statusCode", "error", "message", "msg"];
-const filterData = (data: Record<string, any> | undefined) => {
-	if (!data || typeof data !== "object") return data;
-
-	return Object.fromEntries(
-		Object.entries(data)
-			.filter(([key]) => allowedKeys.includes(key))
-			.map(([key, value]) => {
-				// If value is an object/array, stringify or simplify it
-				if (typeof value === "object" && value !== null) {
-					// You can stringify deeply nested objects or just say "[Object]"
-					return [key, JSON.stringify(value)];
-				}
-				return [key, value];
-			})
-	);
-};
-const formatArgs = (msg: any, args: any[]) => {
-	if (typeof msg === "string")
-		return { message: msg, data: filterData(args[0]) };
-	return { message: args[0] ?? "", data: filterData(msg) };
-};
-
-const logger = {
-	info: (msg: any, ...args: any[]) => {
-		const { message, data } = formatArgs(msg, args);
-		log("INFO", "Fastify", message, data);
-	},
-	debug: (msg: any, ...args: any[]) => {
-		if (!DEBUG_ENABLED) return;
-		const { message, data } = formatArgs(msg, args);
-		log("DEBUG", "Fastify", message, data);
-	},
-	error: (msg: any, ...args: any[]) => {
-		const { message, data } = formatArgs(msg, args);
-		log("ERROR", "Fastify", message, data);
-	},
-	warn: (msg: any, ...args: any[]) => {
-		const { message, data } = formatArgs(msg, args);
-		log("INFO", "Fastify", `⚠️ ${message}`, data);
-	},
-	trace: () => {},
-	fatal: (msg: any, ...args: any[]) => {
-		const { message, data } = formatArgs(msg, args);
-		log("ERROR", "Fastify", `FATAL: ${message}`, data);
-	},
-	child: () => logger,
-	level: "info",
-	silent: false,
-};
-
 // Core logger function
 const log = (
 	type: "INFO" | "DEBUG" | "ERROR" | "SUCCESS",
@@ -111,4 +59,4 @@ const success = (name: string, message: string, data?: Record<string, any>) =>
 	log("SUCCESS", name, message, data);
 
 // Export
-export { info, debug, error, success, logger };
+export { info, debug, error, success };

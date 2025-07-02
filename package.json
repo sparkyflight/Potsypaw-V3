@@ -7,7 +7,7 @@
 	"keywords": [],
 	"type": "module",
 	"scripts": {
-		"start": "node ./dist/index",
+		"start": "bun run ./dist/index",
 		"postinstall": "prisma generate --schema=./src/Serendipy/schema.prisma",
 		"tsc": "tsc",
 		"format": "prettier --write .",
@@ -29,6 +29,11 @@
 		"@kalissaac/prisma-typegen": "^0.0.7",
 		"@types/jest": "^29.5.11",
 		"jest": "^29.7.0",
-		"prisma": "^5.10.2"
+		"prisma": "^5.10.2",
+		"@types/bun": "latest"
+	},
+	"module": "index.ts",
+	"peerDependencies": {
+		"typescript": "^5.0.0"
 	}
 }
