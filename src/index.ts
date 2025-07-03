@@ -10,7 +10,7 @@ import * as database from "./Serendipy/prisma.js";
 import * as rpc from "./Serendipy/rpc.js";
 import * as auth from "./auth.js";
 import * as perms from "./perms.js";
-import { info } from "./logger.js";
+import { info, error as err } from "./logger.js";
 import "dotenv/config";
 
 // Firebase init
@@ -105,10 +105,32 @@ const app = new Elysia()
 		);
 	})
 	.onError(({ code, error }) => {
-		console.error("Server error:", error);
+		let errorMsg: string;
+		if (typeof error === "object" && error !== null) {
+			if ("summary" in error && typeof error.summary === "string")
+				errorMsg = error.summary;
+			else if ("message" in error && typeof error.message === "string")
+				errorMsg = error.message;
+			else if (
+				"errors" in error &&
+				Array.isArray(error.errors) &&
+				error.errors.length > 0
+			) {
+				const first = error.errors[0];
+				errorMsg =
+					typeof first.summary === "string"
+						? first.summary
+						: typeof first.message === "string"
+						? first.message
+						: JSON.stringify(first, null, 2);
+			} else errorMsg = JSON.stringify(error, null, 2);
+		} else errorMsg = String(error);
+
+		err("Elysia", `Error occurred: ${errorMsg}`);
+
 		if (code === "NOT_FOUND")
 			return new Response("Not Found", { status: 404 });
-		return new Response("Internal Server Error", { status: 500 });
+		return new Response(String(error), { status: 500 });
 	});
 
 // Recursively load routes from dist/endpoints
