@@ -92,12 +92,6 @@ const app = new Elysia()
 			},
 		})
 	)
-	.onRequest(({ set }) => {
-		set.headers["Access-Control-Allow-Origin"] = "*";
-		set.headers["Access-Control-Allow-Headers"] = "*";
-		set.headers["Access-Control-Allow-Methods"] = "*";
-		set.headers["Access-Control-Allow-Credentials"] = "true";
-	})
 	.onRequest((ctx) => {
 		info(
 			"Elysia",
