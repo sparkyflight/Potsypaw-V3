@@ -21,7 +21,7 @@ export default new Elysia({
 		summary: "Root Endpoint",
 		description:
 			"This endpoint showcases the root of the API. It is used to verify that the API is running and to provide basic information about the API.",
-        tags: ["Root"]
+		tags: ["Root"],
 	},
 }).get(
 	"/",
