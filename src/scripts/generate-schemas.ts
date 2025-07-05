@@ -37,7 +37,7 @@ for (const file of typeFiles) {
 	// This will create a JSON schema for the type
 	console.log(`⏳ Generating schema for ${typeName}...`);
 	execSync(
-		`npx ts-json-schema-generator --path "${inputPath}" --type "*" --out "${outPath}"`
+		`bunx ts-json-schema-generator --path "${inputPath}" --type "*" --out "${outPath}"`
 	);
 	console.log(`✅ Saved: ${outPath}`);
 
