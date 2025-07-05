@@ -1,11 +1,20 @@
 import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
+import prismaSchema from "../../schemas/PrismaTypes.swagger.schema.json" with { type: "json" };
 
 const querySchema = t.Object({
 	tag: t.String(),
 });
 
-export default new Elysia().get(
+export default new Elysia({
+	name: "Get User",
+	detail: {
+		summary: "Get User by Tag",
+		description:
+			"This endpoint retrieves a user's information based on their usertag. You must provide a valid usertag in the query parameter.",
+		tags: ["Users"],
+	},
+}).get(
 	"/users/get",
 	async ({ query, set }) => {
 		const user = await database.Users.get({ usertag: query.tag });
@@ -23,5 +32,12 @@ export default new Elysia().get(
 	},
 	{
 		query: querySchema,
+		response: {
+			200: prismaSchema.components.schemas.users as any,
+			404: t.Object({
+				message: t.String(),
+				error: t.Boolean(),
+			}),
+		},
 	}
 );

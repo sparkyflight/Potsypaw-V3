@@ -11,7 +11,15 @@ const bodySchema = t.Object({
 	image: t.Optional(t.String()),
 });
 
-export default new Elysia({ name: "posts/comment" }).post(
+export default new Elysia({
+	name: "Comment on a Post",
+	detail: {
+		summary: "Comment on a Post",
+		description:
+			"This endpoint allows you to comment on a post. You must provide a valid authorization token in the request header, the post ID in the query parameter, and the comment details in the request body.",
+		tags: ["Posts"],
+	},
+}).post(
 	"/posts/comment",
 	async ({
 		request,

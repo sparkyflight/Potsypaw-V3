@@ -10,8 +10,16 @@ const bodySchema = t.Object({
 	active: t.Boolean(),
 });
 
-export default new Elysia({ name: "users/update-application" }).patch(
-	"/users/applications",
+export default new Elysia({
+	name: "Edit Application",
+	detail: {
+		summary: "Edit an existing application",
+		description:
+			"This endpoint allows you to edit an existing application in the database. You must provide the application token, name, logo, permissions, and active status.",
+		tags: ["Applications"],
+	},
+}).patch(
+	"/applications",
 	async ({
 		request,
 		body,
@@ -56,7 +64,9 @@ export default new Elysia({ name: "users/update-application" }).patch(
 				active: body.active,
 			});
 
-			return updated;
+			return {
+				success: updated,
+			};
 		} catch (error: any) {
 			set.status = 500;
 			return {
@@ -70,5 +80,23 @@ export default new Elysia({ name: "users/update-application" }).patch(
 	},
 	{
 		body: bodySchema,
+		response: {
+			200: t.Object({
+				success: t.Boolean(),
+			}),
+			401: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			404: t.Object({
+				token: t.String(),
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			500: t.Object({
+				error: t.String(),
+				message: t.String(),
+			}),
+		},
 	}
 );

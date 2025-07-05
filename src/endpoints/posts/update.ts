@@ -10,7 +10,15 @@ const bodySchema = t.Object({
 	post_id: t.String(),
 });
 
-export default new Elysia({ name: "posts/update" }).patch(
+export default new Elysia({
+	name: "Update Post",
+	detail: {
+		summary: "Update Post",
+		description:
+			"This endpoint allows you to update a post's caption, image, and plugins. You must provide a valid authorization token in the request header and the Post ID in the body.",
+		tags: ["Posts"],
+	},
+}).patch(
 	"/posts/update",
 	async ({
 		request,

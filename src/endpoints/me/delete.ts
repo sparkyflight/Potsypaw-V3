@@ -1,8 +1,16 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
 
-export default new Elysia({ name: "users/@me" }).delete(
+export default new Elysia({
+	name: "Delete @me",
+	detail: {
+		summary: "Delete Account",
+		description:
+			"This endpoint allows you to delete your account. You must provide a valid authorization token in the request header.",
+		tags: ["My Profile"],
+	},
+}).delete(
 	"/users/@me",
 	async ({ request, set }) => {
 		const authorization = request.headers.get("authorization");
@@ -45,5 +53,21 @@ export default new Elysia({ name: "users/@me" }).delete(
 				message: error?.message || "An unexpected error occurred",
 			};
 		}
+	},
+	{
+		response: {
+			200: t.Object({
+				success: t.Boolean(),
+			}),
+			401: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			404: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+				token: t.String(),
+			}),
+		},
 	}
 );

@@ -1,9 +1,18 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
+import prismaSchema from "../../schemas/PrismaTypes.swagger.schema.json" with { type: "json" };
 
-export default new Elysia({ name: "users/get-applications" }).get(
-	"/users/applications",
+export default new Elysia({
+	name: "Get Application",
+	detail: {
+		summary: "Fetch all applications",
+		description:
+			"This endpoint retrieves all applications associated with the authenticated user.",
+		tags: ["Applications"],
+	},
+}).get(
+	"/applications",
 	async ({ request, set }) => {
 		const authorization = request.headers.get("authorization");
 
@@ -57,5 +66,23 @@ export default new Elysia({ name: "users/get-applications" }).get(
 					"Unexpected error.",
 			};
 		}
+	},
+	{
+		response: {
+			200: t.Array(prismaSchema.components.schemas.applications as any),
+			404: t.Object({
+				message: t.String(),
+				token: t.String(),
+				error: t.Boolean(),
+			}),
+			401: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			500: t.Object({
+				error: t.String(),
+				message: t.String(),
+			}),
+		},
 	}
 );

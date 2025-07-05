@@ -7,7 +7,15 @@ const querySchema = t.Object({
 	type: t.Enum({ follow: "follow", unfollow: "unfollow" }),
 });
 
-export default new Elysia().put(
+export default new Elysia({
+	name: "Follow User",
+	detail: {
+		summary: "Follow or Unfollow a User",
+		description:
+			"This endpoint allows you to follow or unfollow a user. You must provide a valid authorization token in the request header and specify the target user ID and action type (follow or unfollow).",
+		tags: ["Users"],
+	},
+}).put(
 	"/users/follow",
 	async ({ query, request, set }) => {
 		const authorization = request.headers.get("authorization");
@@ -65,5 +73,18 @@ export default new Elysia().put(
 			return { success: true };
 		}
 	},
-	{ query: querySchema }
+	{
+		query: querySchema,
+		response: {
+			200: t.Object({
+				success: t.Boolean(),
+			}),
+			401: t.Object({
+				error: t.String(),
+			}),
+			404: t.Object({
+				error: t.String(),
+			}),
+		},
+	}
 );

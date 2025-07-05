@@ -10,7 +10,15 @@ const bodySchema = t.Object({
 	plugins: t.Optional(t.Array(t.Any())),
 });
 
-export default new Elysia({ name: "posts/post" }).post(
+export default new Elysia({
+	name: "Create Post",
+	detail: {
+		summary: "Create Post",
+		description:
+			"This endpoint allows you to create a new post. You must provide a valid authorization token in the request header and the post details in the body.",
+		tags: ["Posts"],
+	},
+}).post(
 	"/posts/post",
 	async ({
 		request,

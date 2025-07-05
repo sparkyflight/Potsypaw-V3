@@ -6,7 +6,15 @@ const bodySchema = t.Object({
 	post_id: t.String(),
 });
 
-export default new Elysia({ name: "posts/delete" }).delete(
+export default new Elysia({
+	name: "Delete Post",
+	detail: {
+		summary: "Delete Post",
+		description:
+			"This endpoint allows you to delete a post by providing the Post ID. You must be the author of the post to delete it.",
+		tags: ["Posts"],
+	},
+}).delete(
 	"/posts/delete",
 	async ({
 		request,

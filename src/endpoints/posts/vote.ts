@@ -7,7 +7,15 @@ const querySchema = t.Object({
 	type: t.Enum({ up: "up", down: "down" }),
 });
 
-export default new Elysia({ name: "posts/vote" }).put(
+export default new Elysia({
+	name: "Vote for a Post",
+	detail: {
+		summary: "Vote for a Post",
+		description:
+			"This endpoint allows you to vote for a post. You must provide a valid authorization token in the request header and specify the Post ID and vote type (up or down).",
+		tags: ["Posts"],
+	},
+}).put(
 	"/posts/vote",
 	async ({ request, query, set }) => {
 		const authorization = request.headers.get("authorization");

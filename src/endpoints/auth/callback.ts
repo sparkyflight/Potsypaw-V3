@@ -1,9 +1,17 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
 import * as logger from "../../logger.js";
 
-export default new Elysia({ name: "auth/callback" }).all(
+export default new Elysia({
+	name: "Auth Callback",
+	detail: {
+		summary: "Authentication Callback",
+		description:
+			"This returns a value in which you should use to make further API Requests.",
+		tags: ["Authentication"],
+	},
+}).get(
 	"/auth/callback",
 	async ({ request, set }) => {
 		try {
@@ -61,5 +69,20 @@ export default new Elysia({ name: "auth/callback" }).all(
 				message: "An error occurred while processing your request.",
 			};
 		}
+	},
+	{
+		response: {
+			200: t.Object({
+				token: t.String(),
+			}),
+			401: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			500: t.Object({
+				error: t.String(),
+				message: t.String(),
+			}),
+		},
 	}
 );

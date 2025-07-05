@@ -7,8 +7,16 @@ const bodySchema = t.Object({
 	logo: t.String(),
 });
 
-export default new Elysia({ name: "users/applications" }).post(
-	"/users/applications",
+export default new Elysia({
+	name: "Add Application",
+	detail: {
+		summary: "Create a new application",
+		description:
+			"This endpoint allows you to create a new application by providing its name and logo.",
+		tags: ["Applications"],
+	},
+}).post(
+	"/applications",
 	async ({
 		request,
 		body,
@@ -51,7 +59,9 @@ export default new Elysia({ name: "users/applications" }).post(
 				body.logo
 			);
 
-			return result;
+			return {
+				token: result,
+			};
 		} catch (error: any) {
 			set.status = 500;
 
@@ -63,5 +73,18 @@ export default new Elysia({ name: "users/applications" }).post(
 	},
 	{
 		body: bodySchema,
+		response: {
+			200: t.Object({
+				token: t.String(),
+			}),
+			401: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			500: t.Object({
+				error: t.String(),
+				message: t.String(),
+			}),
+		},
 	}
 );

@@ -11,6 +11,7 @@ import * as rpc from "./Serendipy/rpc.js";
 import * as auth from "./auth.js";
 import * as perms from "./perms.js";
 import { info, error as err } from "./logger.js";
+import fixedSchema from "./schemas/PrismaTypes.schema.json" with { type: "json" };
 import "dotenv/config";
 
 // Firebase init
@@ -43,31 +44,41 @@ const app = new Elysia()
 				info: {
 					title: "Sparkyflight",
 					description:
-						"Welcome to Sparkyflight, the future of Social Media designed for the neurodiverse community...",
+						"Sparkyflight isn't your typical social media network. It's a digital haven crafted specifically for the neurodiverse — especially autistic individuals — to express themselves, connect meaningfully, and explore their favorite subjects in a calm, structured, and supportive space.",
 					version: "3.0.0",
 				},
 				tags: [
 					{
-						name: "users",
+						name: "Users",
 						description:
 							"Endpoints for accessing our User database.",
 					},
 					{
-						name: "posts",
+						name: "Posts",
 						description:
 							"Endpoints for accessing our Posts database.",
 					},
 					{
-						name: "partners",
+						name: "Partners",
 						description: "Endpoints for accessing partner data.",
 					},
 					{
-						name: "@me",
+						name: "Applications",
+						description:
+							"Endpoints for managing developer applications.",
+					},
+					{
+						name: "My Profile",
 						description:
 							"Endpoints for accessing your own personal information.",
 					},
 					{
-						name: "validate",
+						name: "Authentication",
+						description:
+							"Endpoints for user authentication and authorization.",
+					},
+					{
+						name: "Input Validation",
 						description: "Endpoints for validating user data.",
 					},
 				],
@@ -79,14 +90,21 @@ const app = new Elysia()
 							name: "Authorization",
 						},
 					},
+					schemas: fixedSchema.definitions as any,
 				},
 				security: [{ apiKey: [] }],
 				servers: [
 					{
-						url:
-							process.env.ENV === "production"
-								? "http://api.sparkyflight.xyz"
-								: `http://localhost:${process.env.PORT}`,
+						url: "https://potsypaw.sparkyflight.xyz",
+						description: "Production Server",
+					},
+					{
+						url: "https://potsypaw-staging.sparkyflight.xyz",
+						description: "Staging Server",
+					},
+					{
+						url: "http://localhost:5590",
+						description: "Local Development Server",
 					},
 				],
 			},
@@ -115,8 +133,8 @@ const app = new Elysia()
 					typeof first.summary === "string"
 						? first.summary
 						: typeof first.message === "string"
-						? first.message
-						: JSON.stringify(first, null, 2);
+							? first.message
+							: JSON.stringify(first, null, 2);
 			} else errorMsg = JSON.stringify(error, null, 2);
 		} else errorMsg = String(error);
 

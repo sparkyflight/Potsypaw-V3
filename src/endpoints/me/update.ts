@@ -10,7 +10,15 @@ const bodySchema = t.Object({
 	discord: t.Optional(t.String()),
 });
 
-export default new Elysia({ name: "users/update-me" }).patch(
+export default new Elysia({
+	name: "Update @me",
+	detail: {
+		summary: "Update Authenticated User's Profile",
+		description:
+			"This endpoint allows you to update your user profile information. You must provide a valid authorization token in the request header.",
+		tags: ["My Profile"],
+	},
+}).patch(
 	"/users/@me",
 	async ({
 		request,
@@ -74,5 +82,19 @@ export default new Elysia({ name: "users/update-me" }).patch(
 	},
 	{
 		body: bodySchema,
+		response: {
+			200: t.Object({
+				success: t.Boolean(),
+			}),
+			401: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+			}),
+			404: t.Object({
+				error: t.Boolean(),
+				message: t.String(),
+				token: t.String(),
+			}),
+		},
 	}
 );
