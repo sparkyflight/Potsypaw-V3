@@ -12,7 +12,7 @@ export default new Elysia({
 		tags: ["Authentication"],
 	},
 }).post(
-	"/auth/signup",
+	"/auth",
 	async ({ request, query, set }) => {
 		try {
 			const authorization = request.headers.get("authorization");

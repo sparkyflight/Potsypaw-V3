@@ -12,7 +12,7 @@ export default new Elysia({
 		tags: ["Authentication"],
 	},
 }).get(
-	"/auth/callback",
+	"/auth",
 	async ({ request, set }) => {
 		try {
 			const authorization = request.headers.get("authorization");

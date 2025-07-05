@@ -11,7 +11,7 @@ export default new Elysia({
 		tags: ["Posts"],
 	},
 }).get(
-	"/posts/list",
+	"/posts",
 	async () => {
 		const posts = await database.Posts.listAllPosts();
 		return posts;

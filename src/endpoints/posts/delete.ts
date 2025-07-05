@@ -15,7 +15,7 @@ export default new Elysia({
 		tags: ["Posts"],
 	},
 }).delete(
-	"/posts/delete",
+	"/posts",
 	async ({
 		request,
 		body,

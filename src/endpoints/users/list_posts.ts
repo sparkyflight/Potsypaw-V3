@@ -15,7 +15,7 @@ export default new Elysia({
 		tags: ["Users"],
 	},
 }).get(
-	"/users/list_posts",
+	"/users/posts",
 	async ({ query, set }) => {
 		const tag = query.tag;
 

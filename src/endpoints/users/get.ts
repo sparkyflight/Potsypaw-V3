@@ -15,7 +15,7 @@ export default new Elysia({
 		tags: ["Users"],
 	},
 }).get(
-	"/users/get",
+	"/users",
 	async ({ query, set }) => {
 		const user = await database.Users.get({ usertag: query.tag });
 

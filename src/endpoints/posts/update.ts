@@ -19,7 +19,7 @@ export default new Elysia({
 		tags: ["Posts"],
 	},
 }).patch(
-	"/posts/update",
+	"/posts",
 	async ({
 		request,
 		body,

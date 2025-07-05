@@ -46,8 +46,22 @@ const app = new Elysia()
 					description:
 						"Sparkyflight isn't your typical social media network. It's a digital haven crafted specifically for the neurodiverse — especially autistic individuals — to express themselves, connect meaningfully, and explore their favorite subjects in a calm, structured, and supportive space.",
 					version: "3.0.0",
+					termsOfService: "https://purrquinox.com/terms",
+					contact: {
+						name: "Purrquinox",
+						url: "https://purrquinox.com",
+						email: "contact@purrquinox.com",
+					},
+					license: {
+						name: "MIT License",
+						url: "https://opensource.org/license/mit/",
+					},
 				},
 				tags: [
+                    {
+                        name: "Root",
+                        description: "Endpoints for accessing API Statistics."
+                    },
 					{
 						name: "Users",
 						description:
@@ -80,6 +94,11 @@ const app = new Elysia()
 					{
 						name: "Input Validation",
 						description: "Endpoints for validating user data.",
+					},
+					{
+						name: "RPC [Remote Procedure Call]",
+						description:
+							"Coming Soon! *These endpoints are only available to staff.*",
 					},
 				],
 				components: {

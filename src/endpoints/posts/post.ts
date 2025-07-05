@@ -19,7 +19,7 @@ export default new Elysia({
 		tags: ["Posts"],
 	},
 }).post(
-	"/posts/post",
+	"/posts",
 	async ({
 		request,
 		body,
