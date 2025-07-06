@@ -1,6 +1,8 @@
 import { Elysia, Static, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { z } from "zod";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const querySchema = t.Object({
 	id: t.String(),
@@ -18,6 +20,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to comment on a post. You must provide a valid authorization token in the request header, the post ID in the query parameter, and the comment details in the request body.",
 		tags: ["Posts"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).post(
 	"/posts/comment",

@@ -1,6 +1,8 @@
 import { Elysia, t, Static } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { z } from "zod";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const bodySchema = t.Object({
 	post_id: t.String(),
@@ -13,6 +15,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to delete a post by providing the Post ID. You must be the author of the post to delete it.",
 		tags: ["Posts"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).delete(
 	"/posts",

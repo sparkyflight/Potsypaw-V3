@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
-import prismaSchema from "../../schemas/PrismaTypes.swagger.schema.json" with { type: "json" };
+import { generateResponses } from "../../scripts/load-schema.js";
 
 export default new Elysia({
 	name: "Get Partner",
@@ -9,6 +9,7 @@ export default new Elysia({
 		description:
 			"This endpoint retrieves a partner's information based on the provided Partner ID.",
 		tags: ["Partners"],
+		responses: generateResponses("partners", false),
 	},
 }).get(
 	"/partners/get",
@@ -30,8 +31,5 @@ export default new Elysia({
 		query: t.Object({
 			id: t.String(),
 		}),
-		response: {
-			200: prismaSchema.components.schemas.partners,
-		} as any,
 	}
 );

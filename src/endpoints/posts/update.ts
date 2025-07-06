@@ -2,6 +2,8 @@ import { Elysia, t, Static } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
 import { plugins } from "@prisma/client";
+import { z } from "zod";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const bodySchema = t.Object({
 	caption: t.String(),
@@ -17,6 +19,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to update a post's caption, image, and plugins. You must provide a valid authorization token in the request header and the Post ID in the body.",
 		tags: ["Posts"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).patch(
 	"/posts",

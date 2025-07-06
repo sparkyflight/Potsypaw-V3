@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 const formatTime = (seconds) => {
 	const days = Math.floor(seconds / 86400);
@@ -22,28 +24,24 @@ export default new Elysia({
 		description:
 			"This endpoint showcases the root of the API. It is used to verify that the API is running and to provide basic information about the API.",
 		tags: ["Root"],
-	},
-}).get(
-	"/",
-	async () => {
-		return {
-			message: "Welcome to the Sparkyflight API!",
-			description:
-				"Sparkyflight isn't your typical social media network. It's a digital haven crafted specifically for the neurodiverse — especially autistic individuals — to express themselves, connect meaningfully, and explore their favorite subjects in a calm, structured, and supportive space.",
-			version: "3.0.0",
-			docs: "/swagger",
-			uptime: formatTime(process.uptime()),
-		};
-	},
-	{
-		response: {
-			200: t.Object({
-				message: t.String(),
-				description: t.String(),
-				version: t.String(),
-				docs: t.String(),
-				uptime: t.String(),
+		responses: generateResponses(
+			z.object({
+				message: z.string(),
+				description: z.string(),
+				version: z.string(),
+				docs: z.string(),
+				uptime: z.string(),
 			}),
-		} as any,
-	}
-);
+			false
+		),
+	},
+}).get("/", async () => {
+	return {
+		message: "Welcome to the Sparkyflight API!",
+		description:
+			"Sparkyflight isn't your typical social media network. It's a digital haven crafted specifically for the neurodiverse — especially autistic individuals — to express themselves, connect meaningfully, and explore their favorite subjects in a calm, structured, and supportive space.",
+		version: "3.0.0",
+		docs: "/swagger",
+		uptime: formatTime(process.uptime()),
+	};
+});

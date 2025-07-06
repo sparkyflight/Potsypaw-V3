@@ -1,6 +1,8 @@
 import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { z } from "zod";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const querySchema = t.Object({
 	PostID: t.String(),
@@ -14,6 +16,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to vote for a post. You must provide a valid authorization token in the request header and specify the Post ID and vote type (up or down).",
 		tags: ["Posts"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).put(
 	"/posts/vote",

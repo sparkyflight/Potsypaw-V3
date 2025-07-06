@@ -1,6 +1,8 @@
 import { Elysia, Static, t } from "elysia";
+import { z } from "zod";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const bodySchema = t.Object({
 	token: t.String(),
@@ -17,6 +19,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to edit an existing application in the database. You must provide the application token, name, logo, permissions, and active status.",
 		tags: ["Applications"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).patch(
 	"/applications",
@@ -80,23 +88,5 @@ export default new Elysia({
 	},
 	{
 		body: bodySchema,
-		response: {
-			200: t.Object({
-				success: t.Boolean(),
-			}),
-			401: t.Object({
-				error: t.Boolean(),
-				message: t.String(),
-			}),
-			404: t.Object({
-				token: t.String(),
-				error: t.Boolean(),
-				message: t.String(),
-			}),
-			500: t.Object({
-				error: t.String(),
-				message: t.String(),
-			}),
-		},
 	}
 );

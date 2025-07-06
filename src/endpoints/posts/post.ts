@@ -2,6 +2,8 @@ import { Elysia, t, Static } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
 import crypto from "crypto";
+import { z } from "zod";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const bodySchema = t.Object({
 	caption: t.String(),
@@ -17,6 +19,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to create a new post. You must provide a valid authorization token in the request header and the post details in the body.",
 		tags: ["Posts"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).post(
 	"/posts",

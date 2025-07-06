@@ -1,6 +1,8 @@
 import { Elysia, t, Static } from "elysia";
+import { z } from "zod";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const bodySchema = t.Object({
 	name: t.String(),
@@ -14,6 +16,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to create a new application by providing its name and logo.",
 		tags: ["Applications"],
+		responses: generateResponses(
+			z.object({
+				token: z.string(),
+			}),
+			false
+		),
 	},
 }).post(
 	"/applications",
@@ -73,18 +81,5 @@ export default new Elysia({
 	},
 	{
 		body: bodySchema,
-		response: {
-			200: t.Object({
-				token: t.String(),
-			}),
-			401: t.Object({
-				error: t.Boolean(),
-				message: t.String(),
-			}),
-			500: t.Object({
-				error: t.String(),
-				message: t.String(),
-			}),
-		},
 	}
 );

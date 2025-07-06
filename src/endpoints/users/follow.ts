@@ -1,6 +1,8 @@
 import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 const querySchema = t.Object({
 	target: t.String(),
@@ -14,6 +16,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to follow or unfollow a user. You must provide a valid authorization token in the request header and specify the target user ID and action type (follow or unfollow).",
 		tags: ["Users"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+			}),
+			false
+		),
 	},
 }).put(
 	"/users/follow",
@@ -75,16 +83,5 @@ export default new Elysia({
 	},
 	{
 		query: querySchema,
-		response: {
-			200: t.Object({
-				success: t.Boolean(),
-			}),
-			401: t.Object({
-				error: t.String(),
-			}),
-			404: t.Object({
-				error: t.String(),
-			}),
-		},
 	}
 );

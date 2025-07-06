@@ -1,6 +1,6 @@
 import { Elysia, t, Static } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
-import prismaSchema from "../../schemas/PrismaTypes.swagger.schema.json" with { type: "json" };
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const querySchema = t.Object({
 	post_id: t.String(),
@@ -13,6 +13,7 @@ export default new Elysia({
 		description:
 			"This endpoint retrieves a post's information based on the provided Post ID.",
 		tags: ["Posts"],
+		responses: generateResponses("posts", false),
 	},
 }).get(
 	"/posts/get",
@@ -31,8 +32,5 @@ export default new Elysia({
 	},
 	{
 		query: querySchema,
-		response: {
-			200: prismaSchema.components.schemas.posts,
-		} as any,
 	}
 );

@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
-import prismaSchema from "../../schemas/PrismaTypes.swagger.schema.json" with { type: "json" };
+import { generateResponses } from "../../scripts/load-schema.js";
 
 export default new Elysia({
 	name: "List Posts",
@@ -9,16 +9,9 @@ export default new Elysia({
 		description:
 			"This endpoint retrieves a list of all posts from the database.",
 		tags: ["Posts"],
+		responses: generateResponses("posts", true),
 	},
-}).get(
-	"/posts",
-	async () => {
-		const posts = await database.Posts.listAllPosts();
-		return posts;
-	},
-	{
-		response: {
-			200: t.Array(prismaSchema.components.schemas.posts as any),
-		} as any,
-	}
-);
+}).get("/posts", async () => {
+	const posts = await database.Posts.listAllPosts();
+	return posts;
+});

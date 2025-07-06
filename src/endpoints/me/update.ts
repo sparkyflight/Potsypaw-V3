@@ -1,6 +1,8 @@
 import { Elysia, Static, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { getAuth } from "../../auth.js";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 const bodySchema = t.Object({
 	name: t.String(),
@@ -17,6 +19,12 @@ export default new Elysia({
 		description:
 			"This endpoint allows you to update your user profile information. You must provide a valid authorization token in the request header.",
 		tags: ["My Profile"],
+		responses: generateResponses(
+			z.object({
+				success: z.string(),
+			}),
+			false
+		),
 	},
 }).patch(
 	"/users/@me",
@@ -82,19 +90,5 @@ export default new Elysia({
 	},
 	{
 		body: bodySchema,
-		response: {
-			200: t.Object({
-				success: t.Boolean(),
-			}),
-			401: t.Object({
-				error: t.Boolean(),
-				message: t.String(),
-			}),
-			404: t.Object({
-				error: t.Boolean(),
-				message: t.String(),
-				token: t.String(),
-			}),
-		},
 	}
 );

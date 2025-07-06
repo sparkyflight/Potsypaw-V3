@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
-import prismaSchema from "../../schemas/PrismaTypes.swagger.schema.json" with { type: "json" };
+import { generateResponses } from "../../scripts/load-schema.js";
 
 const querySchema = t.Object({
 	tag: t.String(),
@@ -13,6 +13,7 @@ export default new Elysia({
 		description:
 			"This endpoint retrieves a list of posts made by a user specified by their user tag. You must provide a valid user tag in the query parameter.",
 		tags: ["Users"],
+		responses: generateResponses("posts", true),
 	},
 }).get(
 	"/users/posts",
@@ -44,12 +45,5 @@ export default new Elysia({
 	},
 	{
 		query: querySchema,
-		response: {
-			200: t.Array(prismaSchema.components.schemas.posts as any),
-			404: t.Object({
-				message: t.String(),
-				error: t.Boolean(),
-			}),
-		},
 	}
 );

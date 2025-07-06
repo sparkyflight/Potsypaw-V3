@@ -2,6 +2,8 @@ import { Elysia, t } from "elysia";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
 import * as logger from "../../logger.js";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 export default new Elysia({
 	name: "Create Account",
@@ -10,6 +12,13 @@ export default new Elysia({
 		description:
 			"This endpoint allows users to sign up for a new account. It requires an authorization token and a unique usertag.",
 		tags: ["Authentication"],
+		responses: generateResponses(
+			z.object({
+				error: z.boolean(),
+				message: z.string(),
+			}),
+			false
+		),
 	},
 }).post(
 	"/auth",
@@ -81,19 +90,5 @@ export default new Elysia({
 			tag: t.String(),
 			uid: t.String(),
 		}),
-		response: {
-			200: t.Object({
-				error: t.Boolean(),
-				message: t.String(),
-			}),
-			401: t.Object({
-				error: t.Boolean(),
-				message: t.String(),
-			}),
-			500: t.Object({
-				error: t.String(),
-				message: t.String(),
-			}),
-		},
 	}
 );
