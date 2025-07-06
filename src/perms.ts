@@ -8,7 +8,9 @@
  * - `namespace`: The top-level namespace (e.g., `posts`)
  * - `path`: The path as an array of strings (e.g., `["read", "comments"]`)
  */
-const parsePerm = (perm: string): {
+const parsePerm = (
+	perm: string
+): {
 	isNegated: boolean;
 	namespace: string;
 	path: string[];
