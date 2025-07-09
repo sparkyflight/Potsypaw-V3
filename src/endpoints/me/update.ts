@@ -5,10 +5,12 @@ import { generateResponses } from "../../scripts/load-schema.js";
 import { z } from "zod";
 
 const bodySchema = t.Object({
-	name: t.String(),
-	tag: t.String(),
-	avatar: t.String(),
+	name: t.Optional(t.String()),
+	tag: t.Optional(t.String()),
+	avatar: t.Optional(t.String()),
+	banner: t.Optional(t.String()),
 	bio: t.Optional(t.String()),
+	interests: t.Optional(t.Array(t.String)),
 	discord: t.Optional(t.String()),
 });
 
@@ -60,8 +62,12 @@ export default new Elysia({
 		}
 
 		// Normalize optional fields
-		const bio = body.bio?.trim() || null;
+		const name = body.name?.trim() || null;
 		const tag = body.tag?.trim() || null;
+		const avatar = body.avatar?.trim() || null;
+		const banner = body.banner?.trim() || null;
+		const bio = body.bio?.trim() || null;
+		const interests = body.interests || [];
 		const discord = body.discord?.trim() || null;
 
 		if (tag && user.usertag !== tag) {
@@ -77,10 +83,12 @@ export default new Elysia({
 		}
 
 		await database.Users.updateUser(user.userid, {
-			name: body.name,
+			name: name,
 			usertag: tag,
-			avatar: body.avatar,
-			bio,
+			avatar: avatar,
+			banner: banner,
+			bio: bio,
+			special_interests: interests,
 			discord_id: discord,
 		});
 
