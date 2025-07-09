@@ -10,7 +10,7 @@ const bodySchema = t.Object({
 	avatar: t.Optional(t.String()),
 	banner: t.Optional(t.String()),
 	bio: t.Optional(t.String()),
-	interests: t.Optional(t.Array(t.String)),
+	interests: t.Optional(t.Array(t.String())),
 	discord: t.Optional(t.String()),
 });
 
