@@ -88,7 +88,7 @@ export default new Elysia({
 			avatar: avatar,
 			banner: banner,
 			bio: bio,
-			special_interests: interests,
+			specialInterests: interests,
 			discord_id: discord,
 		});
 
