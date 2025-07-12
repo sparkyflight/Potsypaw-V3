@@ -12,9 +12,6 @@ import * as perms from "./perms.js";
 import { info, error as err } from "./logger.js";
 import fixedSchema from "./schemas/PrismaTypes.schema.json" with { type: "json" };
 import "dotenv/config";
-import FlakeId from "flake-idgen";
-import bigunitFormat from "biguint-format";
-import crypto from "crypto";
 
 // Firebase init
 firebase.initializeApp({
@@ -202,25 +199,10 @@ app.listen(
 		hostname: "0.0.0.0",
 		port: Number(process.env.PORT),
 	},
-	async () => {
+	() => {
 		info(
 			"Elysia",
 			`🦊 Sparkyflight API is running at http://localhost:${process.env.PORT}`
 		);
-
-		const applications = await database.prisma.applications.findMany({});
-        const flake = new FlakeId({ epoch: 1609459200000 });
-		for (const app of applications) {
-			const newClientId = bigunitFormat(flake.next(), "dec");
-			const newClientSecret = crypto.randomBytes(32).toString("hex");
-
-			await database.prisma.applications.update({
-				where: { token: app.token },
-				data: {
-					client_id: newClientId,
-					client_secret: newClientSecret,
-				},
-			});
-		}
 	}
 );

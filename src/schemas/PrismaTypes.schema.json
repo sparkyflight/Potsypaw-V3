@@ -17,7 +17,7 @@
         "active": {
           "type": "boolean"
         },
-        "authorized_apps": {
+        "authorized_users": {
           "items": {
             "$ref": "#/definitions/authorized_apps"
           },
@@ -66,7 +66,7 @@
         "token",
         "active",
         "permissions",
-        "authorized_apps"
+        "authorized_users"
       ],
       "type": "object"
     },
