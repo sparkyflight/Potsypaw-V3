@@ -1,5 +1,7 @@
 import { Elysia } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 export default new Elysia({
 	name: "Validate Token",
@@ -7,6 +9,13 @@ export default new Elysia({
 		summary: "Validate an OAuth token",
 		description: "Checks if the token is valid, not expired or revoked.",
 		tags: ["Public oAuth"],
+		responses: generateResponses(
+			z.object({
+				user: z.any(),
+				application: z.any(),
+				scopes: z.record(z.string()),
+			})
+		),
 	},
 }).get("/oauth/validate", async ({ request, set }) => {
 	const token = request.headers.get("Authorization");

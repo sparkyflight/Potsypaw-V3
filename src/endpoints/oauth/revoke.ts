@@ -1,5 +1,7 @@
 import { Elysia } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 export default new Elysia({
 	name: "Revoke Token",
@@ -7,6 +9,12 @@ export default new Elysia({
 		summary: "Revoke an OAuth token",
 		description: "Revokes an existing access token.",
 		tags: ["Public oAuth"],
+		responses: generateResponses(
+			z.object({
+				success: z.boolean(),
+				message: z.string(),
+			})
+		),
 	},
 }).post("/oauth/revoke", async ({ request, set }) => {
 	const token = request.headers.get("Authorization");

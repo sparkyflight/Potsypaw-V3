@@ -1,6 +1,8 @@
 import { Elysia, t } from "elysia";
 import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
+import { generateResponses } from "../../scripts/load-schema.js";
+import { z } from "zod";
 
 export default new Elysia({
 	name: "Authorize Application",
@@ -9,6 +11,11 @@ export default new Elysia({
 		description:
 			"Creates a token for an application after user grants access.",
 		tags: ["Public oAuth"],
+		responses: generateResponses(
+			z.object({
+				token: z.string(),
+			})
+		),
 	},
 }).post(
 	"/oauth/authorize",
