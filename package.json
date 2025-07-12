@@ -8,7 +8,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "bun run ./dist/index",
-		"postinstall": "prisma generate --schema=./src/Serendipy/schema.prisma && tsc && bun run ./src/scripts/generate-schemas.ts",
+		"postinstall": "prisma db push --schema=./src/Serendipy/schema.prisma && tsc && bun run ./src/scripts/generate-schemas.ts",
 		"tsc": "tsc",
 		"format": "prettier --write .",
 		"test": "jest",
