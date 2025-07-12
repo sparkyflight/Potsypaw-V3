@@ -97,6 +97,11 @@ const app = new Elysia()
 							"Endpoints for accessing your own personal information.",
 					},
 					{
+						name: "Public oAuth",
+						description:
+							"Public developer endpoints for Login with Sparkyflight!",
+					},
+					{
 						name: "Authentication",
 						description:
 							"Endpoints for user authentication and authorization.",
