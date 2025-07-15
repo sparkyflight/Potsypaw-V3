@@ -24,7 +24,14 @@ const getAuth = async (token: string, perm: string) => {
 					userid: user_id,
 				},
 				include: {
-					posts: true,
+					posts: {
+                        include: {
+                            upvotes: true,
+                            downvotes: true,
+                            comments: true,
+                            plugins: true,
+                        }
+                    },
 					applications: false,
 					followers: {
 						include: {
