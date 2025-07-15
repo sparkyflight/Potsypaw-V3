@@ -30,6 +30,7 @@ const getAuth = async (token: string, perm: string) => {
                             downvotes: true,
                             comments: true,
                             plugins: true,
+                            user: true
                         }
                     },
 					applications: false,
