@@ -47,7 +47,7 @@ const getStackSession = async (
 					"x-stack-project-id": process.env.X_STACK_PROJECT_ID,
 					"x-stack-secret-server-key":
 						process.env.X_STACK_SECRET_SERVER_KEY,
-					x_stack_access_token: token,
+					"x-stack-access-token": token,
 				},
 			}
 		);
