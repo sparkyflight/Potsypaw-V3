@@ -103,7 +103,4 @@ dist
 # TernJS port file
 .tern-port
 
-# Firebase Admin SDK (Service Accounts)
-src/firebaseService.*
-
 package-lock.json

@@ -1,8 +1,8 @@
 import { Elysia, Static, t } from "elysia";
 import { z } from "zod";
-import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
 import { generateResponses } from "../../scripts/load-schema.js";
+import { getStackSession, StackAuthSessionData } from "../../lib.js";
 
 const bodySchema = t.Object({
 	token: t.String(),
@@ -48,12 +48,18 @@ export default new Elysia({
 		}
 
 		try {
-			const userInfo = await firebase
-				.auth()
-				.verifyIdToken(authorization, true);
+			let stackAuth: StackAuthSessionData;
+			const stackSessionResult = await getStackSession(authorization);
+			if (
+				stackSessionResult &&
+				typeof stackSessionResult === "object" &&
+				"id" in stackSessionResult
+			) {
+				stackAuth = stackSessionResult as StackAuthSessionData;
+			} else stackAuth = undefined as any;
 
 			const dbUser = await database.Users.get({
-				userid: userInfo.uid,
+				userid: stackAuth?.server_metadata.uid,
 			});
 
 			if (!dbUser) {

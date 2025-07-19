@@ -1,8 +1,8 @@
-import { Elysia, t } from "elysia";
-import firebase from "firebase-admin";
+import { Elysia } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import { z } from "zod";
 import { generateResponses } from "../../scripts/load-schema.js";
+import { getStackSession, StackAuthSessionData } from "../../lib.js";
 
 export default new Elysia({
 	name: "Delete @me",
@@ -30,12 +30,18 @@ export default new Elysia({
 	}
 
 	try {
-		const userInfo = await firebase
-			.auth()
-			.verifyIdToken(authorization, true);
+		let stackAuth: StackAuthSessionData;
+		const stackSessionResult = await getStackSession(authorization);
+		if (
+			stackSessionResult &&
+			typeof stackSessionResult === "object" &&
+			"id" in stackSessionResult
+		) {
+			stackAuth = stackSessionResult as StackAuthSessionData;
+		} else stackAuth = undefined as any;
 
 		const user = await database.Users.get({
-			userid: userInfo.uid,
+			userid: stackAuth?.server_metadata.uid,
 		});
 
 		if (!user) {
@@ -48,8 +54,7 @@ export default new Elysia({
 			};
 		}
 
-		await database.Users.delete(userInfo.uid);
-		await firebase.auth().deleteUser(userInfo.uid);
+		await database.Users.delete(stackAuth?.server_metadata.uid);
 
 		return { success: true };
 	} catch (error: any) {

@@ -1,9 +1,9 @@
-import { Elysia, t } from "elysia";
-import firebase from "firebase-admin";
+import { Elysia } from "elysia";
 import * as database from "../../Serendipy/prisma.js";
 import * as logger from "../../logger.js";
 import { generateResponses } from "../../scripts/load-schema.js";
 import { z } from "zod";
+import { getStackSession, StackAuthSessionData } from "../../lib.js";
 
 export default new Elysia({
 	name: "Auth Callback",
@@ -31,13 +31,19 @@ export default new Elysia({
 			};
 		}
 
-		const userInfo = await firebase
-			.auth()
-			.verifyIdToken(authorization, true);
+		let stackAuth: StackAuthSessionData;
+		const stackSessionResult = await getStackSession(authorization);
+		if (
+			stackSessionResult &&
+			typeof stackSessionResult === "object" &&
+			"id" in stackSessionResult
+		) {
+			stackAuth = stackSessionResult as StackAuthSessionData;
+		} else stackAuth = undefined as any;
 
 		const dbUser = await database.prisma.users.findUnique({
 			where: {
-				userid: userInfo.uid,
+				userid: stackAuth?.server_metadata.uid,
 			},
 			include: {
 				posts: true,

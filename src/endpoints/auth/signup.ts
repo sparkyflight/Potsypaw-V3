@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
-import firebase from "firebase-admin";
 import * as database from "../../Serendipy/prisma.js";
 import * as logger from "../../logger.js";
 import { generateResponses } from "../../scripts/load-schema.js";
 import { z } from "zod";
+import { getStackSession, StackAuthSessionData } from "../../lib.js";
 
 export default new Elysia({
 	name: "Create Account",
@@ -35,10 +35,19 @@ export default new Elysia({
 				};
 			}
 
-			const userInfo = await firebase
-				.auth()
-				.verifyIdToken(authorization, true);
-			const dbUser = await database.Users.get({ userid: userInfo.uid });
+			let stackAuth: StackAuthSessionData;
+			const stackSessionResult = await getStackSession(authorization);
+			if (
+				stackSessionResult &&
+				typeof stackSessionResult === "object" &&
+				"id" in stackSessionResult
+			) {
+				stackAuth = stackSessionResult as StackAuthSessionData;
+			} else stackAuth = undefined as any;
+
+			const dbUser = await database.Users.get({
+				userid: stackAuth?.server_metadata.uid,
+			});
 
 			if (dbUser) {
 				return {
@@ -58,7 +67,7 @@ export default new Elysia({
 
 			const result = await database.Users.createUser({
 				name: tag,
-				userid: userInfo.uid,
+				userid: stackAuth?.server_metadata.uid,
 				usertag: tag,
 				bio: "None",
 				avatar: "/logo.png",
