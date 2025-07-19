@@ -1,10 +1,65 @@
 import * as database from "./Serendipy/prisma.js";
-import firebase from "firebase-admin";
-import { DecodedIdToken } from "firebase-admin/auth";
 import { hasPerm } from "./perms.js";
 
+interface StackAuthSessionData {
+	requires_totp_mfa: boolean;
+	auth_with_email: boolean;
+	oauth_providers: {
+		id: string;
+		account_id: string;
+		email: string;
+	}[];
+	is_anonymous: boolean;
+	last_active_at_millis: number;
+	server_metadata: any;
+	client_read_only_metadata: any;
+	client_metadata: any;
+	passkey_auth_enabled: boolean;
+	otp_auth_enabled: boolean;
+	has_password: boolean;
+	signed_up_at_millis: number;
+	profile_image_url: string;
+	selected_team_id: string | null;
+	selected_team: string | null;
+	display_name: string;
+	primary_email_auth_enabled: boolean;
+	primary_email_verified: boolean;
+	primary_email: string;
+	id: string;
+}
+
+const getStackSession = async (
+	token: string
+): Promise<
+	| StackAuthSessionData
+	| {
+			code: string;
+			details: any;
+			error: string;
+	  }
+> => {
+	try {
+		const response = await fetch(
+			"https://auth.purrquinox.com/api/v1/users/me",
+			{
+				headers: {
+					"x-stack-access-type": process.env.X_STACK_ACCESS_TYPE,
+					"x-stack-project-id": process.env.X_STACK_PROJECT_ID,
+					"x-stack-secret-server-key":
+						process.env.X_STACK_SECRET_SERVER_KEY,
+					x_stack_access_token: token,
+				},
+			}
+		);
+		const data: StackAuthSessionData = await response.json();
+		return data;
+	} catch (error) {
+		console.error("Error calling Stack Auth API:", error);
+	}
+};
+
 const getAuth = async (token: string, perm: string) => {
-	let firebaseAuth: DecodedIdToken;
+	let stackAuth: StackAuthSessionData;
 	let apiToken: any;
 
 	if (token === "" || token === null || token === undefined)
@@ -13,7 +68,16 @@ const getAuth = async (token: string, perm: string) => {
 		);
 	else {
 		try {
-			firebaseAuth = await firebase.auth().verifyIdToken(token, true);
+			const stackSessionResult = await getStackSession(token);
+			if (
+				stackSessionResult &&
+				typeof stackSessionResult === "object" &&
+				"id" in stackSessionResult
+			) {
+				stackAuth = stackSessionResult as StackAuthSessionData;
+			} else {
+				stackAuth = undefined as any;
+			}
 		} catch (error) {
 			apiToken = await database.Applications.get(token);
 		}
@@ -25,14 +89,14 @@ const getAuth = async (token: string, perm: string) => {
 				},
 				include: {
 					posts: {
-                        include: {
-                            upvotes: true,
-                            downvotes: true,
-                            comments: true,
-                            plugins: true,
-                            user: true
-                        }
-                    },
+						include: {
+							upvotes: true,
+							downvotes: true,
+							comments: true,
+							plugins: true,
+							user: true,
+						},
+					},
 					applications: false,
 					followers: {
 						include: {
@@ -50,7 +114,7 @@ const getAuth = async (token: string, perm: string) => {
 			});
 		};
 
-		if (firebaseAuth) return getUser(firebaseAuth.uid) || null;
+		if (stackAuth) return getUser(stackAuth.server_metadata.uid) || null;
 		else if (apiToken && "creatorid" in apiToken) {
 			if (apiToken.active) {
 				if (hasPerm(apiToken.permissions, perm))
