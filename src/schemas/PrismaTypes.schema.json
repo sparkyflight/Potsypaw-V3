@@ -1,568 +1,538 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
-    "State": {
-      "enum": [
-        "ACTIVE",
-        "BANNED",
-        "VOTE_BANNED",
-        "FOLLOW_BANNED",
-        "PRIVATE"
-      ],
-      "type": "string"
-    },
-    "applications": {
-      "additionalProperties": false,
-      "properties": {
-        "active": {
-          "type": "boolean"
-        },
-        "authorized_users": {
-          "items": {
-            "$ref": "#/definitions/authorized_apps"
-          },
-          "type": "array"
-        },
-        "client_id": {
-          "type": "string"
-        },
-        "client_secret": {
-          "type": "string"
-        },
-        "creatorid": {
-          "type": "string"
-        },
-        "logo": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "owner": {
-          "$ref": "#/definitions/users"
-        },
-        "permissions": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "scopes": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "token": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "creatorid",
-        "owner",
-        "name",
-        "logo",
-        "scopes",
-        "token",
-        "active",
-        "permissions",
-        "authorized_users"
-      ],
-      "type": "object"
-    },
-    "authorized_apps": {
-      "additionalProperties": false,
-      "properties": {
-        "application": {
-          "$ref": "#/definitions/applications"
-        },
-        "application_id": {
-          "type": "string"
-        },
-        "authorized_user": {
-          "$ref": "#/definitions/users"
-        },
-        "expires_at": {
-          "format": "date-time",
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "revoked_at": {
-          "format": "date-time",
-          "type": "string"
-        },
-        "scopes": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "token": {
-          "type": "string"
-        },
-        "user_id": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "user_id",
-        "authorized_user",
-        "application_id",
-        "application",
-        "scopes",
-        "token"
-      ],
-      "type": "object"
-    },
-    "badge": {
-      "enum": [
-        "STAFF",
-        "VERIFIED"
-      ],
-      "type": "string"
-    },
-    "comments": {
-      "additionalProperties": false,
-      "properties": {
-        "caption": {
-          "type": "string"
-        },
-        "commentid": {
-          "type": "string"
-        },
-        "creatorid": {
-          "type": "string"
-        },
-        "image": {
-          "type": "string"
-        },
-        "post": {
-          "$ref": "#/definitions/posts"
-        },
-        "postid": {
-          "type": "string"
-        },
-        "user": {
-          "$ref": "#/definitions/users"
-        }
-      },
-      "required": [
-        "creatorid",
-        "user",
-        "caption",
-        "post",
-        "postid",
-        "commentid"
-      ],
-      "type": "object"
-    },
-    "downvotes": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "post": {
-          "$ref": "#/definitions/posts"
-        },
-        "postid": {
-          "type": "string"
-        },
-        "userid": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "userid",
-        "postid",
-        "post"
-      ],
-      "type": "object"
-    },
-    "following": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "target": {
-          "$ref": "#/definitions/users"
-        },
-        "targetid": {
-          "type": "string"
-        },
-        "user": {
-          "$ref": "#/definitions/users"
-        },
-        "userid": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "userid",
-        "user",
-        "targetid",
-        "target"
-      ],
-      "type": "object"
-    },
-    "partnerLinks": {
-      "additionalProperties": false,
-      "properties": {
-        "emoji": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "partner": {
-          "$ref": "#/definitions/partners"
-        },
-        "partnerName": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "partnerName",
-        "partner",
-        "name",
-        "emoji",
-        "link"
-      ],
-      "type": "object"
-    },
-    "partners": {
-      "additionalProperties": false,
-      "properties": {
-        "category": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "id": {
-          "type": "string"
-        },
-        "links": {
-          "items": {
-            "$ref": "#/definitions/partnerLinks"
-          },
-          "type": "array"
-        },
-        "logo": {
-          "type": "string"
-        },
-        "long_description": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "owner": {
-          "type": "string"
-        },
-        "ownerImage": {
-          "type": "string"
-        },
-        "ownerLink": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "logo",
-        "category",
-        "owner",
-        "ownerImage",
-        "description",
-        "long_description",
-        "links"
-      ],
-      "type": "object"
-    },
-    "platform": {
-      "enum": [
-        "DISCORD",
-        "TWITTER",
-        "INSTAGRAM",
-        "TIKTOK",
-        "YOUTUBE",
-        "GITHUB",
-        "WEBSITE"
-      ],
-      "type": "string"
-    },
-    "plugins": {
-      "additionalProperties": false,
-      "properties": {
-        "href": {
-          "type": "string"
-        },
-        "id": {
-          "type": "number"
-        },
-        "jsonData": {},
-        "post": {
-          "$ref": "#/definitions/posts"
-        },
-        "postid": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "postid",
-        "post",
-        "type"
-      ],
-      "type": "object"
-    },
-    "posts": {
-      "additionalProperties": false,
-      "properties": {
-        "caption": {
-          "type": "string"
-        },
-        "comments": {
-          "items": {
-            "$ref": "#/definitions/comments"
-          },
-          "type": "array"
-        },
-        "createdat": {
-          "format": "date-time",
-          "type": "string"
-        },
-        "downvotes": {
-          "items": {
-            "$ref": "#/definitions/downvotes"
-          },
-          "type": "array"
-        },
-        "image": {
-          "type": "string"
-        },
-        "plugins": {
-          "items": {
-            "$ref": "#/definitions/plugins"
-          },
-          "type": "array"
-        },
-        "postid": {
-          "type": "string"
-        },
-        "type": {
-          "type": "number"
-        },
-        "upvotes": {
-          "items": {
-            "$ref": "#/definitions/upvotes"
-          },
-          "type": "array"
-        },
-        "user": {
-          "$ref": "#/definitions/users"
-        },
-        "userid": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "userid",
-        "user",
-        "caption",
-        "plugins",
-        "type",
-        "postid",
-        "upvotes",
-        "downvotes",
-        "comments",
-        "createdat"
-      ],
-      "type": "object"
-    },
-    "social": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/platform"
-        },
-        "user": {
-          "$ref": "#/definitions/users"
-        },
-        "userid": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "userid",
-        "user",
-        "platform",
-        "link"
-      ],
-      "type": "object"
-    },
-    "upvotes": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "post": {
-          "$ref": "#/definitions/posts"
-        },
-        "postid": {
-          "type": "string"
-        },
-        "userid": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "userid",
-        "postid",
-        "post"
-      ],
-      "type": "object"
-    },
-    "users": {
-      "additionalProperties": false,
-      "properties": {
-        "applications": {
-          "items": {
-            "$ref": "#/definitions/applications"
-          },
-          "type": "array"
-        },
-        "authorized_apps": {
-          "items": {
-            "$ref": "#/definitions/authorized_apps"
-          },
-          "type": "array"
-        },
-        "avatar": {
-          "type": "string"
-        },
-        "badges": {
-          "items": {
-            "$ref": "#/definitions/badge"
-          },
-          "type": "array"
-        },
-        "banner": {
-          "type": "string"
-        },
-        "bio": {
-          "type": "string"
-        },
-        "birthDay": {
-          "format": "date-time",
-          "type": "string"
-        },
-        "comments": {
-          "items": {
-            "$ref": "#/definitions/comments"
-          },
-          "type": "array"
-        },
-        "discord_id": {
-          "type": "string"
-        },
-        "followers": {
-          "items": {
-            "$ref": "#/definitions/following"
-          },
-          "type": "array"
-        },
-        "following": {
-          "items": {
-            "$ref": "#/definitions/following"
-          },
-          "type": "array"
-        },
-        "name": {
-          "type": "string"
-        },
-        "posts": {
-          "items": {
-            "$ref": "#/definitions/posts"
-          },
-          "type": "array"
-        },
-        "pronouns": {
-          "type": "string"
-        },
-        "socials": {
-          "items": {
-            "$ref": "#/definitions/social"
-          },
-          "type": "array"
-        },
-        "specialInterests": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "staff_perms": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "state": {
-          "$ref": "#/definitions/State"
-        },
-        "userid": {
-          "type": "string"
-        },
-        "usertag": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "usertag",
-        "userid",
-        "bio",
-        "avatar",
-        "banner",
-        "socials",
-        "followers",
-        "following",
-        "badges",
-        "specialInterests",
-        "state",
-        "staff_perms",
-        "applications",
-        "posts",
-        "comments",
-        "authorized_apps"
-      ],
-      "type": "object"
-    }
-  }
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"definitions": {
+		"State": {
+			"enum": [
+				"ACTIVE",
+				"BANNED",
+				"VOTE_BANNED",
+				"FOLLOW_BANNED",
+				"PRIVATE"
+			],
+			"type": "string"
+		},
+		"applications": {
+			"additionalProperties": false,
+			"properties": {
+				"active": {
+					"type": "boolean"
+				},
+				"authorized_users": {
+					"items": {
+						"$ref": "#/definitions/authorized_apps"
+					},
+					"type": "array"
+				},
+				"client_id": {
+					"type": "string"
+				},
+				"client_secret": {
+					"type": "string"
+				},
+				"creatorid": {
+					"type": "string"
+				},
+				"logo": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"owner": {
+					"$ref": "#/definitions/users"
+				},
+				"permissions": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"scopes": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"token": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"creatorid",
+				"owner",
+				"name",
+				"logo",
+				"scopes",
+				"token",
+				"active",
+				"permissions",
+				"authorized_users"
+			],
+			"type": "object"
+		},
+		"authorized_apps": {
+			"additionalProperties": false,
+			"properties": {
+				"application": {
+					"$ref": "#/definitions/applications"
+				},
+				"application_id": {
+					"type": "string"
+				},
+				"authorized_user": {
+					"$ref": "#/definitions/users"
+				},
+				"expires_at": {
+					"format": "date-time",
+					"type": "string"
+				},
+				"id": {
+					"type": "string"
+				},
+				"revoked_at": {
+					"format": "date-time",
+					"type": "string"
+				},
+				"scopes": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"token": {
+					"type": "string"
+				},
+				"user_id": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"id",
+				"user_id",
+				"authorized_user",
+				"application_id",
+				"application",
+				"scopes",
+				"token"
+			],
+			"type": "object"
+		},
+		"badge": {
+			"enum": ["STAFF", "VERIFIED"],
+			"type": "string"
+		},
+		"comments": {
+			"additionalProperties": false,
+			"properties": {
+				"caption": {
+					"type": "string"
+				},
+				"commentid": {
+					"type": "string"
+				},
+				"creatorid": {
+					"type": "string"
+				},
+				"image": {
+					"type": "string"
+				},
+				"post": {
+					"$ref": "#/definitions/posts"
+				},
+				"postid": {
+					"type": "string"
+				},
+				"user": {
+					"$ref": "#/definitions/users"
+				}
+			},
+			"required": [
+				"creatorid",
+				"user",
+				"caption",
+				"post",
+				"postid",
+				"commentid"
+			],
+			"type": "object"
+		},
+		"downvotes": {
+			"additionalProperties": false,
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"post": {
+					"$ref": "#/definitions/posts"
+				},
+				"postid": {
+					"type": "string"
+				},
+				"userid": {
+					"type": "string"
+				}
+			},
+			"required": ["id", "userid", "postid", "post"],
+			"type": "object"
+		},
+		"following": {
+			"additionalProperties": false,
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"target": {
+					"$ref": "#/definitions/users"
+				},
+				"targetid": {
+					"type": "string"
+				},
+				"user": {
+					"$ref": "#/definitions/users"
+				},
+				"userid": {
+					"type": "string"
+				}
+			},
+			"required": ["id", "userid", "user", "targetid", "target"],
+			"type": "object"
+		},
+		"partnerLinks": {
+			"additionalProperties": false,
+			"properties": {
+				"emoji": {
+					"type": "string"
+				},
+				"id": {
+					"type": "string"
+				},
+				"link": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"partner": {
+					"$ref": "#/definitions/partners"
+				},
+				"partnerName": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"id",
+				"partnerName",
+				"partner",
+				"name",
+				"emoji",
+				"link"
+			],
+			"type": "object"
+		},
+		"partners": {
+			"additionalProperties": false,
+			"properties": {
+				"category": {
+					"type": "string"
+				},
+				"description": {
+					"type": "string"
+				},
+				"id": {
+					"type": "string"
+				},
+				"links": {
+					"items": {
+						"$ref": "#/definitions/partnerLinks"
+					},
+					"type": "array"
+				},
+				"logo": {
+					"type": "string"
+				},
+				"long_description": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"owner": {
+					"type": "string"
+				},
+				"ownerImage": {
+					"type": "string"
+				},
+				"ownerLink": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"id",
+				"name",
+				"logo",
+				"category",
+				"owner",
+				"ownerImage",
+				"description",
+				"long_description",
+				"links"
+			],
+			"type": "object"
+		},
+		"platform": {
+			"enum": [
+				"DISCORD",
+				"TWITTER",
+				"INSTAGRAM",
+				"TIKTOK",
+				"YOUTUBE",
+				"GITHUB",
+				"WEBSITE"
+			],
+			"type": "string"
+		},
+		"plugins": {
+			"additionalProperties": false,
+			"properties": {
+				"href": {
+					"type": "string"
+				},
+				"id": {
+					"type": "number"
+				},
+				"jsonData": {},
+				"post": {
+					"$ref": "#/definitions/posts"
+				},
+				"postid": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				}
+			},
+			"required": ["id", "postid", "post", "type"],
+			"type": "object"
+		},
+		"posts": {
+			"additionalProperties": false,
+			"properties": {
+				"caption": {
+					"type": "string"
+				},
+				"comments": {
+					"items": {
+						"$ref": "#/definitions/comments"
+					},
+					"type": "array"
+				},
+				"createdat": {
+					"format": "date-time",
+					"type": "string"
+				},
+				"downvotes": {
+					"items": {
+						"$ref": "#/definitions/downvotes"
+					},
+					"type": "array"
+				},
+				"image": {
+					"type": "string"
+				},
+				"plugins": {
+					"items": {
+						"$ref": "#/definitions/plugins"
+					},
+					"type": "array"
+				},
+				"postid": {
+					"type": "string"
+				},
+				"type": {
+					"type": "number"
+				},
+				"upvotes": {
+					"items": {
+						"$ref": "#/definitions/upvotes"
+					},
+					"type": "array"
+				},
+				"user": {
+					"$ref": "#/definitions/users"
+				},
+				"userid": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"userid",
+				"user",
+				"caption",
+				"plugins",
+				"type",
+				"postid",
+				"upvotes",
+				"downvotes",
+				"comments",
+				"createdat"
+			],
+			"type": "object"
+		},
+		"social": {
+			"additionalProperties": false,
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"link": {
+					"type": "string"
+				},
+				"platform": {
+					"$ref": "#/definitions/platform"
+				},
+				"user": {
+					"$ref": "#/definitions/users"
+				},
+				"userid": {
+					"type": "string"
+				}
+			},
+			"required": ["id", "userid", "user", "platform", "link"],
+			"type": "object"
+		},
+		"upvotes": {
+			"additionalProperties": false,
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"post": {
+					"$ref": "#/definitions/posts"
+				},
+				"postid": {
+					"type": "string"
+				},
+				"userid": {
+					"type": "string"
+				}
+			},
+			"required": ["id", "userid", "postid", "post"],
+			"type": "object"
+		},
+		"users": {
+			"additionalProperties": false,
+			"properties": {
+				"applications": {
+					"items": {
+						"$ref": "#/definitions/applications"
+					},
+					"type": "array"
+				},
+				"authorized_apps": {
+					"items": {
+						"$ref": "#/definitions/authorized_apps"
+					},
+					"type": "array"
+				},
+				"avatar": {
+					"type": "string"
+				},
+				"badges": {
+					"items": {
+						"$ref": "#/definitions/badge"
+					},
+					"type": "array"
+				},
+				"banner": {
+					"type": "string"
+				},
+				"bio": {
+					"type": "string"
+				},
+				"birthDay": {
+					"format": "date-time",
+					"type": "string"
+				},
+				"comments": {
+					"items": {
+						"$ref": "#/definitions/comments"
+					},
+					"type": "array"
+				},
+				"discord_id": {
+					"type": "string"
+				},
+				"followers": {
+					"items": {
+						"$ref": "#/definitions/following"
+					},
+					"type": "array"
+				},
+				"following": {
+					"items": {
+						"$ref": "#/definitions/following"
+					},
+					"type": "array"
+				},
+				"name": {
+					"type": "string"
+				},
+				"posts": {
+					"items": {
+						"$ref": "#/definitions/posts"
+					},
+					"type": "array"
+				},
+				"pronouns": {
+					"type": "string"
+				},
+				"socials": {
+					"items": {
+						"$ref": "#/definitions/social"
+					},
+					"type": "array"
+				},
+				"specialInterests": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"staff_perms": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"state": {
+					"$ref": "#/definitions/State"
+				},
+				"userid": {
+					"type": "string"
+				},
+				"usertag": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"usertag",
+				"userid",
+				"bio",
+				"avatar",
+				"banner",
+				"socials",
+				"followers",
+				"following",
+				"badges",
+				"specialInterests",
+				"state",
+				"staff_perms",
+				"applications",
+				"posts",
+				"comments",
+				"authorized_apps"
+			],
+			"type": "object"
+		}
+	}
 }
