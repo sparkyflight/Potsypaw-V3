@@ -1,5 +1,6 @@
 import firebase from "firebase-admin";
 import "dotenv/config";
+import { prisma } from "./Serendipy/prisma.js";
 
 // Initialize Firebase Admin SDK
 const serviceAccount = {
@@ -19,14 +20,6 @@ const serviceAccount = {
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount as firebase.ServiceAccount),
 });
-
-type ProviderData = {
-  uid?: string;
-  displayName?: string;
-  email?: string;
-  photoURL?: string;
-  providerId?: string;
-};
 
 type StackUserPayload = {
   is_anonymous: boolean;
@@ -71,6 +64,14 @@ async function migrateUsers() {
       });
 
       const result = await response.json();
+      if (!result.error) await prisma.users.update({
+        where: {
+            userid: user.uid,
+        },
+        data: {
+            userid: result.id
+        },
+      })
       console.log(result);
     }
   } catch (error) {
