@@ -58,7 +58,7 @@ const getAuth = async (token: string, perm: string) => {
 			});
 		};
 
-		if (stackAuth) return getUser(stackAuth.server_metadata.uid) || null;
+		if (stackAuth) return getUser(stackAuth.id) || null;
 		else if (apiToken && "creatorid" in apiToken) {
 			if (apiToken.active) {
 				if (hasPerm(apiToken.permissions, perm))

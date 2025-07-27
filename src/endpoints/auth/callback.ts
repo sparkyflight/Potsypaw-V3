@@ -43,7 +43,7 @@ export default new Elysia({
 
 		const dbUser = await database.prisma.users.findUnique({
 			where: {
-				userid: stackAuth?.server_metadata.uid,
+				userid: stackAuth?.id,
 			},
 			include: {
 				posts: true,

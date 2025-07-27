@@ -41,7 +41,7 @@ export default new Elysia({
 		} else stackAuth = undefined as any;
 
 		const user = await database.Users.get({
-			userid: stackAuth?.server_metadata.uid,
+			userid: stackAuth?.id,
 		});
 
 		if (!user) {
@@ -54,7 +54,7 @@ export default new Elysia({
 			};
 		}
 
-		await database.Users.delete(stackAuth?.server_metadata.uid);
+		await database.Users.delete(stackAuth?.id);
 
 		return { success: true };
 	} catch (error: any) {

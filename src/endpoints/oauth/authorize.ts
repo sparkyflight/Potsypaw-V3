@@ -53,7 +53,7 @@ export default new Elysia({
 			} else stackAuth = undefined as any;
 
 			const dbUser = await database.Users.get({
-				userid: stackAuth?.server_metadata.uid,
+				userid: stackAuth?.id,
 			});
 			if (!dbUser) {
 				set.status = 404;

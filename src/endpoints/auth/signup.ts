@@ -46,7 +46,7 @@ export default new Elysia({
 			} else stackAuth = undefined as any;
 
 			const dbUser = await database.Users.get({
-				userid: stackAuth?.server_metadata.uid,
+				userid: stackAuth?.id,
 			});
 
 			if (dbUser) {
@@ -67,7 +67,7 @@ export default new Elysia({
 
 			const result = await database.Users.createUser({
 				name: tag,
-				userid: stackAuth?.server_metadata.uid,
+				userid: stackAuth?.id,
 				usertag: tag,
 				bio: "None",
 				avatar: "/logo.png",
