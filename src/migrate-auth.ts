@@ -79,7 +79,9 @@ async function migrateUsers() {
 					data: {
 						userid: result.id,
 					},
-				});
+				}).catch((error) => {
+                    console.log(user.uid)
+                });
 			console.log(result);
 		}
 	} catch (error) {
