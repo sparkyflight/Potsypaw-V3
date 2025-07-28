@@ -10,7 +10,6 @@ import * as auth from "./auth.js";
 import * as perms from "./perms.js";
 import { info, error as err } from "./logger.js";
 import fixedSchema from "./schemas/PrismaTypes.schema.json" with { type: "json" };
-import "./migrate-auth.js";
 import "dotenv/config";
 
 // Initialize Elysia App
