@@ -42,47 +42,53 @@ async function migrateUsers() {
 		const list = await firebase.auth().listUsers();
 
 		for (const user of list.users) {
-			const payload: StackUserPayload = {
-				is_anonymous: false,
-				display_name: user.displayName || undefined,
-				profile_image_url: user.photoURL || undefined,
-				client_metadata: {},
-				client_read_only_metadata: {},
-				server_metadata: {},
-				primary_email: user.email || undefined,
-				primary_email_verified: user.emailVerified,
-				primary_email_auth_enabled: true,
-			};
+			const existingUser = await prisma.users.findUnique({
+				where: {
+					userid: user.uid,
+				},
+			});
 
-			const response = await fetch(
-				"https://auth.purrquinox.com/api/v1/users",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"X-Stack-Access-Type": "server",
-						"X-Stack-Secret-Server-Key":
-							"ssk_vvktygh8v089gpaszbhamkh4dypjvk8nrk9mj1zanxnt0",
-						"X-Stack-Project-Id":
-							"26ee7b79-26fb-4e79-82ef-901f63164df6",
-					},
-					body: JSON.stringify(payload),
-				}
-			);
+			if (existingUser) {
+				const payload: StackUserPayload = {
+					is_anonymous: false,
+					display_name: user.displayName || undefined,
+					profile_image_url: user.photoURL || undefined,
+					client_metadata: {},
+					client_read_only_metadata: {},
+					server_metadata: {},
+					primary_email: user.email || undefined,
+					primary_email_verified: user.emailVerified,
+					primary_email_auth_enabled: true,
+				};
 
-			const result = await response.json();
-			if (!result.error)
-				await prisma.users.update({
-					where: {
-						userid: user.uid,
-					},
-					data: {
-						userid: result.id,
-					},
-				}).catch((error) => {
-                    console.log(user.uid)
-                });
-			console.log(result);
+				const response = await fetch(
+					"https://auth.purrquinox.com/api/v1/users",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-Stack-Access-Type": "server",
+							"X-Stack-Secret-Server-Key":
+								"ssk_vvktygh8v089gpaszbhamkh4dypjvk8nrk9mj1zanxnt0",
+							"X-Stack-Project-Id":
+								"26ee7b79-26fb-4e79-82ef-901f63164df6",
+						},
+						body: JSON.stringify(payload),
+					}
+				);
+
+				const result = await response.json();
+				if (!result.error)
+					await prisma.users.update({
+						where: {
+							userid: user.uid,
+						},
+						data: {
+							userid: result.id,
+						},
+					});
+				console.log(result);
+			}
 		}
 	} catch (error) {
 		console.error("Error migrating users:", error);
